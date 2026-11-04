@@ -10,7 +10,7 @@ It was built for a bootcamp where every module is its own Classroom course. Kurs
 - **Private progress:** each participant marks items as to do, done or skipped
 - **Dashboard** with new and open items, due dates and progress per module
 - **Search** across titles, descriptions and attachments
-- **Link bar** with links for the whole batch, plus personal links
+- **Collapsible sidebar** with navigation, links for the whole batch and personal links
 - **Personal tasks** for each participant
 - **Maintainer page** for the import, import history, links and the list of allowed emails
 - **Dark mode**, plus German and English in the signed-in area

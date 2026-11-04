@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { AppFrame } from "@/components/kurspool/app-frame";
+import { LocalizedFooter, SiteFooter } from "@/components/kurspool/site-footer";
 import { getMembership } from "@/lib/membership";
 import { getContactEmailForMember } from "@/lib/site";
 
@@ -25,7 +26,13 @@ async function ContactDetails() {
 
 /** Members keep the app's menu here, so the page doesn't look as if they were signed out. */
 async function PrivacyFrame({ children }: { children: ReactNode }) {
-  return (await getMembership()) ? <AppFrame>{children}</AppFrame> : children;
+  if (await getMembership()) return <AppFrame>{children}</AppFrame>;
+  return (
+    <>
+      {children}
+      <LocalizedFooter />
+    </>
+  );
 }
 
 function PrivacyContent() {
@@ -82,7 +89,14 @@ function PrivacyContent() {
 
 export default function PrivacyPage() {
   return (
-    <Suspense fallback={<PrivacyContent />}>
+    <Suspense
+      fallback={
+        <>
+          <PrivacyContent />
+          <SiteFooter locale="de" />
+        </>
+      }
+    >
       <PrivacyFrame>
         <PrivacyContent />
       </PrivacyFrame>

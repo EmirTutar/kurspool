@@ -13,6 +13,7 @@ const de = {
     searchPlaceholder: "Material suchen",
     theme: "Farbmodus wechseln",
     language: "English",
+    toggleMenu: "Menü ein- oder ausklappen",
   },
   footer: {
     label: "Rechtliches und Kontakt",
@@ -180,6 +181,7 @@ const en: Dictionary = {
     searchPlaceholder: "Search material",
     theme: "Change color mode",
     language: "Deutsch",
+    toggleMenu: "Open or close the menu",
   },
   footer: {
     label: "Legal and contact",

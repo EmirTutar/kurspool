@@ -175,6 +175,37 @@ test.describe("student", () => {
     await expect(page).toHaveURL("/dashboard");
   });
 
+  test("opens and closes the sidebar and remembers it", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/dashboard");
+    const sidebar = page.locator('[data-slot="sidebar"][data-state]');
+    await expect(sidebar).toHaveAttribute("data-state", "expanded");
+
+    await page.getByRole("button", { name: "Menü ein- oder ausklappen" }).click();
+    await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+    await page.reload();
+    await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+
+    await page.getByRole("button", { name: "Suchen" }).click();
+    await expect(sidebar).toHaveAttribute("data-state", "expanded");
+    await expect(page.getByRole("searchbox")).toBeFocused();
+  });
+
+  test("opens the sidebar as a panel on a phone", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/dashboard");
+    await expect(page.getByRole("link", { name: "Einstellungen" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Menü ein- oder ausklappen" }).click();
+    await page.getByRole("link", { name: "Einstellungen" }).click();
+    await expect(page).toHaveURL("/settings");
+    await expect(page.getByRole("link", { name: "Einstellungen" })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
+  });
+
   test("links to the privacy page from the footer", async ({ page }) => {
     await page.goto("/login");
     const footer = page.getByRole("contentinfo");

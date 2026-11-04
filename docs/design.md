@@ -20,7 +20,7 @@ It was built for the AI Software Engineering Bootcamp at Digitale Leute School, 
 ## Scope
 
 **Included**
-- **Links:** a button bar shared by the batch, plus personal links set in Settings.
+- **Navigation and links:** a collapsible sidebar with the app's pages, links shared by the batch, and personal links set in Settings. On phones it opens as a panel.
 - **Dashboard:** new and open items grouped by module, due dates, progress per module, personal tasks and the last import time.
 - **Course view:** modules → Classroom topics → items, with attachments, clickable links and a link back to Classroom.
 - **Filters and search:** filter by category and status, and search titles, descriptions and attachments.

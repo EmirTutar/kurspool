@@ -43,7 +43,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-8 lg:grid-cols-[20rem_minmax(0,1fr)]">
+    <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-8 xl:grid-cols-[20rem_minmax(0,1fr)]">
       <aside className="space-y-8">
         <section aria-labelledby="path-heading">
           <h2 id="path-heading" className="font-heading text-lg font-bold text-primary">
@@ -118,7 +118,7 @@ async function DashboardContent() {
         </section>
       </aside>
 
-      <main className="order-first min-w-0 space-y-10 lg:order-none">
+      <main className="order-first min-w-0 space-y-10 xl:order-none">
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />
