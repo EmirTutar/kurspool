@@ -9,7 +9,7 @@ export default function NoAccessPage() {
     <main className="flex flex-1 items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Kein Zugang</CardTitle>
+          <CardTitle><h1>Kein Zugang</h1></CardTitle>
           <CardDescription>
             Dieses Google-Konto steht auf keiner Batch-Liste. Bitte die Person, die euren Batch betreut, dich
             freizuschalten, oder{" "}

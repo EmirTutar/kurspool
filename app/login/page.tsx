@@ -24,7 +24,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Bei Kurspool anmelden</CardTitle>
+          <CardTitle><h1>Bei Kurspool anmelden</h1></CardTitle>
           <CardDescription>Nutze das Google-Konto, das für deinen Batch freigeschaltet ist.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
