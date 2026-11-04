@@ -1,21 +1,23 @@
 # Kurspool
 
-A course dashboard for Google Classroom. Kurspool imports a course's material once a day and shows each student what is new, what is still open and what is done.
+A course dashboard for Google Classroom. Kurspool imports a course's material once a day and shows each participant what is new, what is still open and what is done.
 
-It was built for a bootcamp where every module is its own Classroom course. Kurspool merges those courses into one view. It is an unofficial student project and is not affiliated with any school.
+It was built for a bootcamp where every module is its own Classroom course. Kurspool merges those courses into one view. It is an unofficial project by a course participant and is not affiliated with any school.
 
 ## Features
 
 - **Daily import** of topics, coursework, materials and announcements across several Classroom courses
-- **Private progress:** each student marks items as to do, done or skipped
+- **Private progress:** each participant marks items as to do, done or skipped
 - **Dashboard** with new and open items, due dates and progress per module
 - **Search** across titles, descriptions and attachments
 - **Link bar** with links for the whole batch, plus personal links
-- **Personal tasks** for each student
+- **Personal tasks** for each participant
 - **Maintainer page** for the import, import history, links and the list of allowed emails
 - **Dark mode**, plus German and English in the signed-in area
 
-**Limits:** Kurspool reads Classroom through one maintainer account, so it can't see what a student has turned in. "Done" is the student's own mark. Students still submit their work in Classroom.
+**Limits:** Kurspool reads Classroom through one maintainer account, so it can't see what a participant has turned in. "Done" is the participant's own mark. Participants still submit their work in Classroom.
+
+Participants have the role `student` in the code and database.
 
 ## Tech stack
 
@@ -89,11 +91,11 @@ Under **Authentication > URL Configuration**, set the site URL to your app's add
 
 ### 2. Google Cloud
 
-Use two separate projects, so that signing in never asks students for access to Classroom.
+Use two separate projects, so that signing in never asks participants for access to Classroom.
 
 | Project | Purpose | Scopes | Redirect URI |
 |---|---|---|---|
-| Login | Student sign-in | `openid`, `email`, `profile` | `https://<project-ref>.supabase.co/auth/v1/callback` |
+| Login | Participant sign-in | `openid`, `email`, `profile` | `https://<project-ref>.supabase.co/auth/v1/callback` |
 | Sync | Daily import | The read-only Classroom scopes in [`client.ts`](src/lib/classroom/client.ts) | `https://<your-app>/api/classroom/callback` |
 
 - **Login project:** enter its client ID and secret in Supabase under **Authentication > Providers > Google**.
@@ -130,7 +132,7 @@ insert into public.batch_allowed_emails (batch_id, email, role)
 select id, 'you@example.com', 'maintainer' from new_batch;
 ```
 
-Sign in with that email, open the maintainer page, connect Classroom and run the first import. You can add students' emails on the same page.
+Sign in with that email, open the maintainer page, connect Classroom and run the first import. You can add participants' emails on the same page.
 
 ## Backups
 

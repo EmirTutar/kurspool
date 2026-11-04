@@ -1,6 +1,6 @@
 # Classroom connection test: findings
 
-Date: 2026-11-04. Account: the owner's student account. Google OAuth client status: Testing.
+Date: 2026-11-04. Account: the owner's course account. Google OAuth client status: Testing.
 
 ## Result
 

@@ -16,7 +16,7 @@ const de = {
   },
   footer: {
     label: "Rechtliches und Kontakt",
-    note: "Inoffizielles Studierendenprojekt.",
+    note: "Inoffizielles Projekt von Kursteilnehmenden.",
     privacy: "Datenschutz",
     contact: "Kontakt",
   },
@@ -183,7 +183,7 @@ const en: Dictionary = {
   },
   footer: {
     label: "Legal and contact",
-    note: "Unofficial student project.",
+    note: "Unofficial project by course participants.",
     privacy: "Privacy",
     contact: "Contact",
   },

@@ -16,7 +16,7 @@ export default function Home() {
         </Link>
       </div>
       <p className="text-sm text-muted-foreground">
-        Inoffizielles Projekt von Studierenden, nur für freigeschaltete Batches.
+        Inoffizielles Projekt von Kursteilnehmenden, nur für freigeschaltete Batches.
       </p>
     </main>
   );

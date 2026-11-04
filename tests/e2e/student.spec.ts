@@ -141,7 +141,7 @@ test.describe("student", () => {
   test("shows the contact address only to accounts on a batch list", async ({ page, context }) => {
     const address = "contact@kurspool.test";
     await page.goto("/privacy");
-    await expect(page.getByText("Emircan Tutar")).toBeVisible();
+    await expect(page.getByText("Emircan Tutar").first()).toBeVisible();
     await expect(page.getByText(/Kontaktadresse siehst du/).first()).toBeVisible();
     expect(await page.content()).not.toContain(address);
 
@@ -157,6 +157,22 @@ test.describe("student", () => {
     await page.reload();
     await expect(page.getByRole("link", { name: address })).toHaveAttribute("href", `mailto:${address}`);
     await expect(page.getByRole("contentinfo").getByRole("link", { name: "Kontakt" })).toBeVisible();
+  });
+
+  test("stays inside the app on the privacy and home pages when signed in", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+
+    await page.goto("/dashboard");
+    await page.getByRole("contentinfo").getByRole("link", { name: "Datenschutz" }).click();
+    await expect(page).toHaveURL("/privacy");
+    await expect(page.getByRole("button", { name: "Abmelden" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Anmelden" })).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Zur Startseite" }).click();
+    await expect(page).toHaveURL("/dashboard");
+    await page.goto("/login");
+    await expect(page).toHaveURL("/dashboard");
   });
 
   test("links to the privacy page from the footer", async ({ page }) => {
@@ -205,6 +221,11 @@ test.describe("access", () => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL("/no-access");
     await expect(page.getByRole("heading", { level: 1, name: "Kein Zugang" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Abmelden und anderes Konto wählen" }).click();
+    await expect(page).toHaveURL("/");
+    await page.getByRole("link", { name: "Anmelden" }).click();
+    await expect(page).toHaveURL("/login");
   });
 
   test("keeps students off the maintainer page", async ({ page, context }) => {

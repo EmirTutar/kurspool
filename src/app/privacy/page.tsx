@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
+import { AppFrame } from "@/components/kurspool/app-frame";
+import { getMembership } from "@/lib/membership";
 import { getContactEmailForMember } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Datenschutz · Kurspool" };
@@ -21,13 +23,18 @@ async function ContactDetails() {
   );
 }
 
-export default function PrivacyPage() {
+/** Members keep the app's menu here, so the page doesn't look as if they were signed out. */
+async function PrivacyFrame({ children }: { children: ReactNode }) {
+  return (await getMembership()) ? <AppFrame>{children}</AppFrame> : children;
+}
+
+function PrivacyContent() {
   return (
     <main className="mx-auto w-full max-w-2xl space-y-6 p-4 py-10">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Datenschutz</h1>
         <p className="text-muted-foreground">
-          Kurspool ist ein inoffizielles Projekt von Studierenden und kein Angebot der Digitale Leute School.
+          Kurspool ist ein inoffizielles Projekt von Kursteilnehmenden und kein Angebot der Digitale Leute School.
         </p>
       </div>
       <section className="space-y-2">
@@ -70,5 +77,15 @@ export default function PrivacyPage() {
         Zur Startseite
       </Link>
     </main>
+  );
+}
+
+export default function PrivacyPage() {
+  return (
+    <Suspense fallback={<PrivacyContent />}>
+      <PrivacyFrame>
+        <PrivacyContent />
+      </PrivacyFrame>
+    </Suspense>
   );
 }
