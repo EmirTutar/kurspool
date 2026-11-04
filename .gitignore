@@ -39,3 +39,7 @@ node_modules/
 supabase/.temp/
 supabase/seed.local.sql
 scripts/.spike/
+
+test-results/
+playwright-report/
+backup.sql*

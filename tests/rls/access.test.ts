@@ -204,6 +204,26 @@ describe("access rules", () => {
     });
   });
 
+  describe("account deletion", () => {
+    it("removes the user's progress, tasks, links and membership", async () => {
+      await insert("batch_allowed_emails", { batch_id: batchA.id, email: emailOf("erin") });
+      const erin = await signUp("erin");
+      await erin.client.rpc("join_batch_if_allowed");
+      await erin.client.from("item_progress").insert({ user_id: erin.id, item_id: itemA.id, status: "done" });
+      await erin.client.from("personal_tasks").insert({ user_id: erin.id, title: "t" });
+      await erin.client.from("user_links").insert({ user_id: erin.id, label: "l", url: "https://example.com", position: 0 });
+
+      const { error } = await admin.auth.admin.deleteUser(erin.id);
+      expect(error).toBeNull();
+
+      for (const table of ["item_progress", "personal_tasks", "user_links", "batch_members"]) {
+        const { data } = await admin.from(table).select("user_id").eq("user_id", erin.id);
+        expect(data, table).toEqual([]);
+      }
+      await admin.from("batch_allowed_emails").delete().eq("email", emailOf("erin"));
+    });
+  });
+
   describe("batch settings", () => {
     it("blocks self-promotion and joining by direct insert", async () => {
       await alice.client.from("batch_members").update({ role: "maintainer" }).eq("user_id", alice.id);

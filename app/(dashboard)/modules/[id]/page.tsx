@@ -4,23 +4,27 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ItemRow } from "@/components/kurspool/item-row";
 import { loadBatchData } from "@/lib/batch-data";
-import { CATEGORY_LABELS, filterItems, groupByTopic, moduleProgress, STATUS_LABELS } from "@/lib/dashboard";
+import { CATEGORIES, filterItems, groupByTopic, moduleProgress, STATUSES } from "@/lib/dashboard";
+import { fill } from "@/lib/i18n";
+import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
-export const metadata: Metadata = { title: "Modul · Kurspool" };
+export const metadata: Metadata = { title: "Kurspool" };
 
 type Props = PageProps<"/modules/[id]">;
 
 function FilterLinks({
   label,
+  allLabel,
   param,
   options,
   current,
   other,
 }: {
   label: string;
+  allLabel: string;
   param: string;
-  options: Record<string, string>;
+  options: [string, string][];
   current?: string;
   other: Record<string, string | undefined>;
 }) {
@@ -31,16 +35,16 @@ function FilterLinks({
     return query ? `?${query}` : "?";
   };
   const chip = (active: boolean) =>
-    `inline-flex min-h-9 items-center rounded-md px-3 text-sm ${active ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-accent"}`;
+    `inline-flex min-h-9 items-center rounded-md px-3 text-sm ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"}`;
 
   return (
     <div>
       <p className="text-sm text-muted-foreground">{label}</p>
       <div className="mt-1 flex flex-wrap gap-2">
         <Link href={href()} aria-current={!current ? "true" : undefined} className={chip(!current)}>
-          Alle
+          {allLabel}
         </Link>
-        {Object.entries(options).map(([value, text]) => (
+        {options.map(([value, text]) => (
           <Link key={value} href={href(value)} aria-current={current === value ? "true" : undefined} className={chip(current === value)}>
             {text}
           </Link>
@@ -53,10 +57,11 @@ function FilterLinks({
 async function ModuleContent({ params, searchParams }: Props) {
   const membership = await getMembership();
   if (!membership) redirect("/no-access");
+  const { locale, t } = await getDictionary();
   const { id } = await params;
   const query = await searchParams;
-  const category = typeof query.category === "string" && query.category in CATEGORY_LABELS ? query.category : undefined;
-  const status = typeof query.status === "string" && query.status in STATUS_LABELS ? query.status : undefined;
+  const category = CATEGORIES.find((value) => value === query.category);
+  const status = STATUSES.find((value) => value === query.status);
 
   const { modules, topics, items } = await loadBatchData(membership);
   const moduleRow = modules.find((candidate) => candidate.id === id);
@@ -65,25 +70,39 @@ async function ModuleContent({ params, searchParams }: Props) {
   const moduleItems = items.filter((item) => item.module_id === id);
   const progress = moduleProgress(moduleItems);
   const visible = filterItems(moduleItems, { category, status });
-  const groups = groupByTopic(visible, topics.filter((topic) => topic.module_id === id));
+  const groups = groupByTopic(visible, topics.filter((topic) => topic.module_id === id), t.module.moreEntries);
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
       <div>
         <Link href="/dashboard" className="text-sm underline underline-offset-4">
-          Zur Übersicht
+          {t.module.back}
         </Link>
-        <h1 className="font-heading mt-2 text-3xl font-bold text-primary">{moduleRow.title}</h1>
+        <h1 className="mt-2 font-heading text-3xl font-bold text-primary">{moduleRow.title}</h1>
         <p className="mt-1 text-muted-foreground">
-          {progress.total > 0 ? `${progress.finished} von ${progress.total} erledigt` : "In diesem Modul gibt es noch kein Material."}
+          {progress.total > 0 ? fill(t.dashboard.finishedOf, { finished: progress.finished, total: progress.total }) : t.module.empty}
         </p>
       </div>
 
       {moduleItems.length > 0 && (
         <>
           <div className="space-y-3">
-            <FilterLinks label="Art" param="category" options={CATEGORY_LABELS} current={category} other={{ status }} />
-            <FilterLinks label="Status" param="status" options={STATUS_LABELS} current={status} other={{ category }} />
+            <FilterLinks
+              label={t.module.filterKind}
+              allLabel={t.module.all}
+              param="category"
+              options={CATEGORIES.map((value) => [value, t.category[value]])}
+              current={category}
+              other={{ status }}
+            />
+            <FilterLinks
+              label={t.module.filterStatus}
+              allLabel={t.module.all}
+              param="status"
+              options={STATUSES.map((value) => [value, t.status[value]])}
+              current={status}
+              other={{ category }}
+            />
           </div>
           {groups.length > 0 ? (
             groups.map((group) => (
@@ -91,13 +110,13 @@ async function ModuleContent({ params, searchParams }: Props) {
                 <h2 className="font-heading text-xl font-bold text-primary">{group.title}</h2>
                 <div className="mt-1">
                   {group.items.map((item) => (
-                    <ItemRow key={item.id} item={item} />
+                    <ItemRow key={item.id} item={item} locale={locale} />
                   ))}
                 </div>
               </section>
             ))
           ) : (
-            <p className="text-muted-foreground">Keine Einträge für diese Auswahl. Wähle bei Art oder Status „Alle“.</p>
+            <p className="text-muted-foreground">{t.module.noResults}</p>
           )}
         </>
       )}
@@ -107,7 +126,7 @@ async function ModuleContent({ params, searchParams }: Props) {
 
 export default function ModulePage(props: Props) {
   return (
-    <Suspense fallback={<p className="p-4 text-muted-foreground">Wird geladen …</p>}>
+    <Suspense fallback={<p className="p-4 text-muted-foreground">…</p>}>
       <ModuleContent {...props} />
     </Suspense>
   );

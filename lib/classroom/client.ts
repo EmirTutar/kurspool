@@ -83,6 +83,19 @@ export async function refreshAccessToken(
   return body.access_token;
 }
 
+/** Asks Google to end the app's access. Returns false instead of throwing, so disconnecting still clears local data. */
+export async function revokeToken(token: string, fetchImpl: FetchLike = fetch): Promise<boolean> {
+  try {
+    const response = await fetchImpl("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      body: new URLSearchParams({ token }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function createClassroomSource(accessToken: string, fetchImpl: FetchLike = fetch): ClassroomSource {
   async function list<T>(path: string, key: string, query: Record<string, string> = {}): Promise<T[]> {
     const all: T[] = [];

@@ -4,6 +4,7 @@ import {
   createClassroomSource,
   ReconnectRequiredError,
   refreshAccessToken,
+  revokeToken,
   SYNC_SCOPES,
 } from "@/lib/classroom/client";
 import { isAuthorizedCron } from "@/lib/sync/cron-auth";
@@ -40,6 +41,21 @@ describe("refreshAccessToken", () => {
     expect(error).not.toBeInstanceOf(ReconnectRequiredError);
     expect((error as Error).message).toContain("500");
     expect((error as Error).message).not.toContain("secret");
+  });
+});
+
+describe("revokeToken", () => {
+  it("posts the token to Google's revoke endpoint", async () => {
+    const fetchImpl = vi.fn(async () => json({}));
+    await expect(revokeToken("r", fetchImpl)).resolves.toBe(true);
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://oauth2.googleapis.com/revoke");
+    expect(String(init.body)).toBe("token=r");
+  });
+
+  it("reports failure without throwing", async () => {
+    await expect(revokeToken("r", vi.fn(async () => json({}, 400)))).resolves.toBe(false);
+    await expect(revokeToken("r", vi.fn(async () => { throw new Error("offline"); }))).resolves.toBe(false);
   });
 });
 

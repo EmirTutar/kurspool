@@ -38,8 +38,7 @@ export default function PrivacyPage() {
       <section className="space-y-2">
         <h2 className="font-medium">Auskunft und Löschung</h2>
         <p>
-          Wende dich an die Person, die dich für deinen Batch freigeschaltet hat, um deine Daten einzusehen oder löschen
-          zu lassen.
+          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen. Für eine Auskunft wende dich an die Person, die dich für deinen Batch freigeschaltet hat.
         </p>
       </section>
       <Link href="/" className="inline-block underline underline-offset-4">

@@ -1,0 +1,43 @@
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check secrets
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          test -n "$SUPABASE_DB_URL" || { echo "SUPABASE_DB_URL is not set"; exit 1; }
+          test -n "$BACKUP_PASSPHRASE" || { echo "BACKUP_PASSPHRASE is not set"; exit 1; }
+      - name: Export data
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          npx supabase db dump --db-url "$SUPABASE_DB_URL" --data-only -s public,auth -f backup.sql
+          test -s backup.sql
+      - name: Encrypt
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" --symmetric --cipher-algo AES256 -o backup.sql.gpg backup.sql
+          shred -u backup.sql
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kurspool-backup-${{ github.run_number }}
+          path: backup.sql.gpg
+          retention-days: 30
+          if-no-files-found: error
