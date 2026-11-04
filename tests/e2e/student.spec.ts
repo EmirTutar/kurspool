@@ -92,7 +92,8 @@ test.describe("student", () => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
     await page.goto("/dashboard");
-    await page.getByRole("link", { name: /First module/ }).click();
+    await page.getByRole("button", { name: /First module/ }).click();
+    await page.getByRole("link", { name: "Modul mit Filtern öffnen" }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Week one" })).toBeVisible();
 
     await page.getByRole("link", { name: "Aufzeichnung" }).click();
@@ -173,6 +174,31 @@ test.describe("student", () => {
     await expect(page).toHaveURL("/dashboard");
     await page.goto("/login");
     await expect(page).toHaveURL("/dashboard");
+  });
+
+  test("opens a module card and fills its progress circle", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/dashboard");
+
+    const card = page.getByRole("button", { name: /First module/ });
+    await expect(card).toHaveAttribute("aria-expanded", "false");
+    await expect(card).toContainText("0%");
+    await expect(page.getByRole("region", { name: "Week one" })).toHaveCount(0);
+
+    await card.click();
+    await expect(card).toHaveAttribute("aria-expanded", "true");
+    const week = page.getByRole("region", { name: "Week one" });
+    await expect(week.getByText("Recording", { exact: true })).toBeVisible();
+
+    await week.getByRole("checkbox", { name: "Als erledigt markieren: Recording" }).click();
+    await expect(card).toContainText("33%");
+    await expect(card).toHaveAttribute("aria-expanded", "true");
+
+    await card.click();
+    await expect(page.getByRole("region", { name: "Week one" })).toHaveCount(0);
+    await expect(page.getByText("Empty module")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Empty module/ })).toHaveCount(0);
   });
 
   test("opens and closes the sidebar and remembers it", async ({ page, context }) => {

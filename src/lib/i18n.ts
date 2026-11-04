@@ -41,6 +41,7 @@ const de = {
   dashboard: {
     title: "Übersicht",
     path: "Dein Lernpfad",
+    moduleDetails: "Modul mit Filtern öffnen",
     finishedOf: "{finished} von {total} erledigt",
     newSuffix: ", {count} neu",
     noMaterial: "Noch kein Material",
@@ -209,6 +210,7 @@ const en: Dictionary = {
   dashboard: {
     title: "Overview",
     path: "Your learning path",
+    moduleDetails: "Open module with filters",
     finishedOf: "{finished} of {total} done",
     newSuffix: ", {count} new",
     noMaterial: "No material yet",

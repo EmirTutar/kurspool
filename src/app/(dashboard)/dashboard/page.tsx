@@ -1,18 +1,17 @@
 import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { addTask, deleteTask, markAllSeen } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
 import { ItemRow } from "@/components/kurspool/item-row";
+import { ModuleCard } from "@/components/kurspool/module-card";
 import { TaskCheckbox } from "@/components/kurspool/task-checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { loadBatchData } from "@/lib/batch-data";
-import { displayTitle, dueItems, groupByModule, isStale, moduleProgress } from "@/lib/dashboard";
+import { displayTitle, dueItems, groupByModule, groupByTopic, isStale } from "@/lib/dashboard";
 import { fill, formatDate } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
@@ -26,7 +25,7 @@ async function DashboardContent() {
   if (!membership) redirect("/no-access");
   const { locale, t } = await getDictionary();
 
-  const { batch, modules, items } = await loadBatchData(membership);
+  const { batch, modules, topics, items } = await loadBatchData(membership);
   const { data: taskRows } = await membership.supabase
     .from("personal_tasks")
     .select("id, title, done, due_on")
@@ -43,53 +42,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-8 xl:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside className="space-y-8">
-        <section aria-labelledby="path-heading">
-          <h2 id="path-heading" className="font-heading text-lg font-bold text-primary">
-            {t.dashboard.path}
-          </h2>
-          <ol className="mt-3">
-            {modules.map((module) => {
-              const progress = moduleProgress(items.filter((item) => item.module_id === module.id));
-              const number = module.position < 9999 ? module.position : "";
-              const name = module.title.replace(/^\s*\d+\s*\.\s*/, "");
-              return (
-                <li key={module.id}>
-                  <Link href={`/modules/${module.id}`} className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-2 rounded-md py-2.5 hover:bg-secondary">
-                    <span className="text-center font-heading text-2xl font-bold leading-tight text-primary">{number}</span>
-                    <div className="min-w-0 pr-2">
-                      <span className="block text-sm font-medium leading-snug">{name}</span>
-                      {progress.total > 0 ? (
-                        <>
-                          <Progress
-                            value={progress.percent}
-                            aria-label={`${t.dashboard.progress}: ${name}`}
-                            className="mt-1.5 **:data-[slot=progress-indicator]:bg-success **:data-[slot=progress-track]:h-1.5 **:data-[slot=progress-track]:bg-accent"
-                          />
-                          <span className="mt-1 block text-xs text-muted-foreground">
-                            {fill(t.dashboard.finishedOf, { finished: progress.finished, total: progress.total })}
-                            {progress.newCount > 0 && fill(t.dashboard.newSuffix, { count: progress.newCount })}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="mt-0.5 block text-xs text-muted-foreground">{t.dashboard.noMaterial}</span>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ol>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {batch?.last_synced_at
-              ? fill(t.dashboard.lastSync, { date: formatDate(locale, batch.last_synced_at, true) })
-              : t.dashboard.neverSynced}
-          </p>
-        </section>
-      </aside>
-
-      <main className="order-first min-w-0 space-y-10 xl:order-none">
+      <main className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />
@@ -125,6 +78,32 @@ async function DashboardContent() {
               ))}
             </ul>
           )}
+        </section>
+
+        <section aria-labelledby="path-heading">
+          <h2 id="path-heading" className="font-heading text-xl font-bold text-primary">
+            {t.dashboard.path}
+          </h2>
+          <div className="mt-3 space-y-3">
+            {modules.map((module) => {
+              const moduleItems = items.filter((item) => item.module_id === module.id);
+              return (
+                <ModuleCard
+                  key={module.id}
+                  id={module.id}
+                  title={module.title}
+                  items={moduleItems}
+                  groups={groupByTopic(moduleItems, topics.filter((topic) => topic.module_id === module.id), t.module.moreEntries)}
+                  locale={locale}
+                />
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {batch?.last_synced_at
+              ? fill(t.dashboard.lastSync, { date: formatDate(locale, batch.last_synced_at, true) })
+              : t.dashboard.neverSynced}
+          </p>
         </section>
 
         <section aria-labelledby="new-heading">
@@ -203,7 +182,6 @@ async function DashboardContent() {
           )}
         </section>
       </main>
-    </div>
   );
 }
 
