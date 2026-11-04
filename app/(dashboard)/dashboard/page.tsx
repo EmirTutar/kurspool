@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,11 +30,18 @@ async function DashboardContent() {
           <h1 className="text-2xl font-semibold">{batch.name}</h1>
           <p className="text-sm text-muted-foreground">Angemeldet als {user.email}</p>
         </div>
-        <form action="/auth/signout" method="post">
-          <Button variant="outline" type="submit">
-            Abmelden
-          </Button>
-        </form>
+        <div className="flex items-center gap-3">
+          {member.role === "maintainer" && (
+            <Link href="/maintainer" className="text-sm underline underline-offset-4">
+              Betreuung
+            </Link>
+          )}
+          <form action="/auth/signout" method="post">
+            <Button variant="outline" type="submit">
+              Abmelden
+            </Button>
+          </form>
+        </div>
       </div>
       <p>Hier erscheinen bald deine Module, Aufgaben und Links.</p>
     </>
