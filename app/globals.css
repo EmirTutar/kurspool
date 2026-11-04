@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --font-heading: var(--font-display);
+  --color-success: var(--success);
+  --color-marker: var(--marker);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,24 +51,26 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --success: #1F7A5C;
+  --marker: #FFE14D;
+  --background: #F4F7FC;
+  --foreground: #16204D;
+  --card: #FFFFFF;
+  --card-foreground: #16204D;
+  --popover: #FFFFFF;
+  --popover-foreground: #16204D;
+  --primary: #1B2A6B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E6EBF6;
+  --secondary-foreground: #1B2A6B;
+  --muted: #E6EBF6;
+  --muted-foreground: #4C5678;
+  --accent: #D6DEF0;
+  --accent-foreground: #1B2A6B;
+  --destructive: #C8102E;
+  --border: #D3DAEA;
+  --input: #AEB8D2;
+  --ring: #1B2A6B;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -127,4 +131,19 @@
   html {
     @apply font-sans;
   }
+}
+/* The highlighter stroke behind anything new. */
+.marker {
+  background-image: linear-gradient(transparent 12%, var(--marker) 12%, var(--marker) 90%, transparent 90%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: 0.2em;
+  margin-inline: -0.2em;
+}
+
+summary:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

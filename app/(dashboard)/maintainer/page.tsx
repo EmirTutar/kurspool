@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getMembership } from "@/lib/membership";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { syncNow } from "./actions";
+import { BatchEditors } from "./batch-editors";
 import { SyncButton } from "./sync-button";
 
 export const metadata: Metadata = { title: "Betreuung · Kurspool" };
@@ -110,6 +110,7 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
           </div>
         </CardContent>
       </Card>
+      <BatchEditors {...membership} />
       <Card>
         <CardHeader>
           <CardTitle>Importverlauf</CardTitle>
@@ -145,12 +146,7 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
 export default function MaintainerPage({ searchParams }: PageProps<"/maintainer">) {
   return (
     <main className="mx-auto w-full max-w-3xl space-y-4 p-4 py-10">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Betreuung</h1>
-        <Link href="/dashboard" className="text-sm underline underline-offset-4">
-          Zum Dashboard
-        </Link>
-      </div>
+      <h1 className="font-heading text-3xl font-bold text-primary">Betreuung</h1>
       <Suspense fallback={<p className="text-muted-foreground">Wird geladen …</p>}>
         <MaintainerContent searchParams={searchParams} />
       </Suspense>

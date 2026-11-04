@@ -151,6 +151,20 @@ describe("runSync", () => {
     expect((await visibleItems()).map((row) => row.classroom_id)).toEqual(["w1"]);
   });
 
+  it("records the last sync time only when a module succeeded", async () => {
+    const lastSynced = async () =>
+      (await db.from("batches").select("last_synced_at").eq("id", batchId).single()).data?.last_synced_at;
+
+    await runSync(db, batchId, SECTION, fakeSource([], {}));
+    expect(await lastSynced()).toBeNull();
+
+    await runSync(db, batchId, SECTION, fakeSource([course("c1", "1. M")], { c1: { failing: true } }));
+    expect(await lastSynced()).toBeNull();
+
+    await runSync(db, batchId, SECTION, fakeSource([course("c1", "1. M")], { c1: {} }));
+    expect(await lastSynced()).not.toBeNull();
+  });
+
   it("matches sections regardless of extra spaces", async () => {
     const result = await runSync(db, batchId, "Batch  A", fakeSource(
       [course("c1", "1. One", "Batch A"), course("c2", "2. Two", " Batch  A ")],

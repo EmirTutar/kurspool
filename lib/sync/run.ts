@@ -165,6 +165,13 @@ export async function runSync(db: SupabaseClient, batchId: string, section: stri
     result.errors.push(errorCode(error));
   }
 
+  if (result.modules > 0) {
+    unwrap(
+      await db.from("batches").update({ last_synced_at: new Date().toISOString() }).eq("id", batchId),
+      "last sync time",
+    );
+  }
+
   unwrap(
     await db
       .from("sync_runs")
