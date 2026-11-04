@@ -23,6 +23,9 @@ export type SyncResult = {
 
 const STALE_RUN_MS = 10 * 60 * 1000;
 
+// Classroom section names can differ by spacing between modules of the same batch.
+const normalizeSection = (value = "") => value.trim().replace(/\s+/g, " ");
+
 function unwrap<T>(result: { data: T | null; error: { message: string } | null }, what: string): T {
   if (result.error) throw new Error(`${what}: ${result.error.message}`);
   return result.data as T;
@@ -141,7 +144,9 @@ export async function runSync(db: SupabaseClient, batchId: string, section: stri
 
   const result: SyncResult = { status: "success", modules: 0, items: 0, hidden: 0, errors: [] };
   try {
-    const courses = (await source.listCourses()).filter((course) => course.section === section);
+    const courses = (await source.listCourses()).filter(
+      (course) => normalizeSection(course.section) === normalizeSection(section),
+    );
     if (!courses.length) throw new Error("no_matching_courses");
 
     for (const course of courses) {

@@ -151,6 +151,14 @@ describe("runSync", () => {
     expect((await visibleItems()).map((row) => row.classroom_id)).toEqual(["w1"]);
   });
 
+  it("matches sections regardless of extra spaces", async () => {
+    const result = await runSync(db, batchId, "Batch  A", fakeSource(
+      [course("c1", "1. One", "Batch A"), course("c2", "2. Two", " Batch  A ")],
+      { c1: { courseWork: [work("w1", "x")] }, c2: { courseWork: [work("w2", "y")] } },
+    ));
+    expect(result.modules).toBe(2);
+  });
+
   it("fails without hiding anything when no course matches", async () => {
     await runSync(db, batchId, SECTION, fakeSource([course("c1", "1. M")], { c1: { courseWork: [work("w1", "Keep")] } }));
 
