@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { MaintainerSkeleton } from "@/components/kurspool/skeletons";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,7 +130,7 @@ async function MaintainerHeading() {
 export default function MaintainerPage({ searchParams }: PageProps<"/maintainer">) {
   return (
     <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-10">
-      <Suspense fallback={<p className="text-muted-foreground">…</p>}>
+      <Suspense fallback={<MaintainerSkeleton />}>
         <MaintainerHeading />
         <MaintainerContent searchParams={searchParams} />
       </Suspense>

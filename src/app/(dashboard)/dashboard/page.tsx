@@ -2,6 +2,7 @@ import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { DashboardSkeleton } from "@/components/kurspool/skeletons";
 import { addTask, deleteTask, markAllSeen } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
 import { ItemRow } from "@/components/kurspool/item-row";
@@ -42,7 +43,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-      <main className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
+      <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />
@@ -187,7 +188,7 @@ async function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<p className="p-4 text-muted-foreground">…</p>}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <DashboardContent />
     </Suspense>
   );

@@ -3,16 +3,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 
 function Bone({ className }: { className?: string }) {
-  return <Skeleton className={cn("shimmer", className)} />;
+  return <Skeleton className={cn("loading-bone", className)} />;
 }
 
 function Loading({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={className} aria-busy="true">
+    <div className="w-full" aria-busy="true">
       <span role="status" className="sr-only">
         Wird geladen …
       </span>
-      <div aria-hidden className="contents">
+      <div aria-hidden className={className}>
         {children}
       </div>
     </div>

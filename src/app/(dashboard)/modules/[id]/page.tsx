@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ModuleSkeleton } from "@/components/kurspool/skeletons";
 import { ItemRow } from "@/components/kurspool/item-row";
 import { buttonVariants } from "@/components/ui/button";
 import { loadBatchData } from "@/lib/batch-data";
@@ -73,7 +74,7 @@ async function ModuleContent({ params, searchParams }: Props) {
   const groups = groupByTopic(visible, topics.filter((topic) => topic.module_id === id), t.module.moreEntries);
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
       <div>
         <Link href="/dashboard" className="text-sm underline underline-offset-4">
           {t.module.back}
@@ -126,7 +127,7 @@ async function ModuleContent({ params, searchParams }: Props) {
 
 export default function ModulePage(props: Props) {
   return (
-    <Suspense fallback={<p className="p-4 text-muted-foreground">…</p>}>
+    <Suspense fallback={<ModuleSkeleton />}>
       <ModuleContent {...props} />
     </Suspense>
   );

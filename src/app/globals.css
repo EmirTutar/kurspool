@@ -144,6 +144,37 @@
   margin-inline: -0.2em;
 }
 
+/* A band of light that sweeps across loading placeholders. */
+.loading-bone {
+  position: relative;
+  overflow: hidden;
+  animation: none;
+  background-color: var(--accent);
+}
+
+.loading-bone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--foreground) 9%, transparent), transparent);
+  animation: loading-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes loading-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bone::after {
+    animation: none;
+    transform: none;
+    background: none;
+  }
+}
+
 .dark .marker {
   color: #000000;
 }

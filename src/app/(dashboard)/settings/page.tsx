@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { SettingsSkeleton } from "@/components/kurspool/skeletons";
 import { addUserLink, deleteAccount, deleteUserLink } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ async function SettingsContent() {
   const links = (data ?? []) as { id: string; label: string; url: string }[];
 
   return (
-    <main className="mx-auto w-full max-w-2xl space-y-8 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-2xl space-y-8 px-4 py-8">
       <h1 className="font-heading text-3xl font-bold text-primary">{t.settings.title}</h1>
 
       <section aria-labelledby="links-heading" className="space-y-4">
@@ -90,7 +91,7 @@ async function SettingsContent() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<p className="p-4 text-muted-foreground">…</p>}>
+    <Suspense fallback={<SettingsSkeleton />}>
       <SettingsContent />
     </Suspense>
   );

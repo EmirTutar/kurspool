@@ -201,6 +201,21 @@ test.describe("student", () => {
     await expect(page.getByRole("button", { name: /Empty module/ })).toHaveCount(0);
   });
 
+  test("shows a page-shaped placeholder while a page loads", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/settings");
+    await page.route((url) => url.searchParams.has("_rsc"), async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue().catch(() => {});
+    });
+    await page.getByRole("link", { name: "Übersicht" }).click();
+    await expect(page.locator(".loading-bone").first()).toBeVisible();
+    await expect(page.getByText("…", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Dein Lernpfad" })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".loading-bone")).toHaveCount(0);
+  });
+
   test("opens and closes the sidebar and remembers it", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
