@@ -57,8 +57,15 @@ The 8 in "other" are too many for the rules as written:
 - The current token stops working around 2026-11-11 unless the app's status changes or the owner reconnects.
 - Task 6 decides whether publishing the sync client removes this limit.
 
+## Scope labels and publishing
+
+- **Labels:** after being saved on the Data Access page, all five scopes are listed under "non-sensitive", including after a reload. This differs from Google's Classroom add-on guide, which calls Classroom scopes sensitive. The console will be rechecked when publishing.
+- **Scope name:** the console shows `classroom.coursework.me.readonly` as `classroom.student-submissions.me.readonly`, described as "View your course work and grades". Kurspool does not import grades or `maxPoints`.
+- **Publishing is blocked for now:** "Publish app" stays disabled until the Branding page is complete. The Home page, privacy policy link and authorized domain are empty, and Kurspool has no public URL yet.
+- **Decision:** do not enter placeholder URLs. Task 6 moves to the end of Phase 1, when the deployed app can provide a real home page and privacy page. Until then, reconnect when the token expires. This does not block Phase 1.
+
 ## Not yet confirmed
 
-- The console's sensitive or restricted labels for the five scopes were not recorded.
 - Whether publishing without verification removes the 7-day limit.
+- Which Branding fields Google actually requires before enabling "Publish app".
 - Whether the scopes are sufficient for announcements with real content. The announcements call returned no error, but also no items.
