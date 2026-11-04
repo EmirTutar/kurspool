@@ -2,15 +2,16 @@
   "name": "kurspool",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
+    "test": "vitest run --config tests/vitest.config.ts",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {

@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kurspool
 
-## Getting Started
+A course dashboard for Google Classroom. Kurspool imports a course's material once a day and shows each student what is new, what is still open and what is done.
 
-First, run the development server:
+It was built for a bootcamp where every module is its own Classroom course. Kurspool merges those courses into one view. It is an unofficial student project and is not affiliated with any school.
+
+## Features
+
+- **Daily import** of topics, coursework, materials and announcements across several Classroom courses
+- **Private progress:** each student marks items as to do, done or skipped
+- **Dashboard** with new and open items, due dates and progress per module
+- **Search** across titles, descriptions and attachments
+- **Link bar** with links for the whole batch, plus personal links
+- **Personal tasks** for each student
+- **Maintainer page** for the import, import history, links and the list of allowed emails
+- **Dark mode**, plus German and English in the signed-in area
+
+**Limits:** Kurspool reads Classroom through one maintainer account, so it can't see what a student has turned in. "Done" is the student's own mark. Students still submit their work in Classroom.
+
+## Tech stack
+
+Next.js, React, TypeScript, Tailwind CSS and shadcn/ui, with Supabase for the database and login, and Vercel for hosting and the daily job. Tests use Vitest and Playwright.
+
+## Project structure
+
+| Folder | Contents |
+|---|---|
+| `src/app` | Pages and API routes |
+| `src/components` | UI components |
+| `src/lib` | Classroom client, import logic and helpers |
+| `supabase` | Database migrations and local configuration |
+| `tests` | Unit, database access and browser tests |
+| `docs` | [Design](docs/design.md) and [Classroom API findings](docs/classroom-api-findings.md) |
+
+## Run it locally
+
+You need Node.js 22 and Docker.
+
+```bash
+npm ci
+npm run db:start
+npx supabase status -o env
+```
+
+Create `.env.local` from the values that the last command prints:
+
+| Variable | Value from `supabase status` |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `API_URL` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `PUBLISHABLE_KEY` |
+| `SUPABASE_SECRET_KEY` | `SECRET_KEY` |
+
+Then start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Signing in through the browser and importing from Classroom both need the Google setup below. The tests don't.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The local database must be running.
 
-## Learn More
+```bash
+npm run lint
+npm test
 
-To learn more about Next.js, take a look at the following resources:
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+GitHub Actions runs all of these on every push to `main` and on every pull request.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy your own
 
-## Deploy on Vercel
+### 1. Supabase
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Create a project, then apply the database schema:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npm run db:push
+```
+
+Under **Authentication > URL Configuration**, set the site URL to your app's address and allow `https://<your-app>/auth/callback`.
+
+### 2. Google Cloud
+
+Use two separate projects, so that signing in never asks students for access to Classroom.
+
+| Project | Purpose | Scopes | Redirect URI |
+|---|---|---|---|
+| Login | Student sign-in | `openid`, `email`, `profile` | `https://<project-ref>.supabase.co/auth/v1/callback` |
+| Sync | Daily import | The read-only Classroom scopes in [`client.ts`](src/lib/classroom/client.ts) | `https://<your-app>/api/classroom/callback` |
+
+- **Login project:** enter its client ID and secret in Supabase under **Authentication > Providers > Google**.
+- **Sync project:** enable the Classroom API and set the app's status to **In production**. Google expires refresh tokens after 7 days while an app is in Testing.
+
+### 3. Vercel
+
+Import the repository and set these environment variables. The [`.env.example`](.env.example) file lists them too.
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project address |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+| `SUPABASE_SECRET_KEY` | Supabase secret key, used only on the server |
+| `GOOGLE_SYNC_CLIENT_ID` | Client ID of the sync project |
+| `GOOGLE_SYNC_CLIENT_SECRET` | Client secret of the sync project |
+| `SYNC_TOKEN_KEY` | Encrypts the stored Google token; 32 random bytes in base64 |
+| `CRON_SECRET` | Protects the import route; any long random string |
+
+The import runs daily at 04:00 UTC, as set in [`vercel.json`](vercel.json).
+
+### 4. Create your batch
+
+Run this in the Supabase SQL editor. `classroom_section` must match the section name of your Classroom courses, because the import only reads courses in that section.
+
+```sql
+with new_batch as (
+  insert into public.batches (name, slug, classroom_section)
+  values ('My batch', 'my-batch', 'My Classroom section')
+  returning id
+)
+insert into public.batch_allowed_emails (batch_id, email, role)
+select id, 'you@example.com', 'maintainer' from new_batch;
+```
+
+Sign in with that email, open the maintainer page, connect Classroom and run the first import. You can add students' emails on the same page.
+
+## Backups
+
+The [backup workflow](.github/workflows/backup.yml) exports the data every Monday and keeps an encrypted copy as a GitHub Actions artifact for 30 days. It needs two repository secrets:
+
+| Secret | Value |
+|---|---|
+| `SUPABASE_DB_URL` | The session pooler address from **Connect > Direct** in Supabase |
+| `BACKUP_PASSPHRASE` | A long password. Backups can't be opened without it |
+
+Backups contain data only. To restore one, apply the migrations first.
+
+## License
+
+[MIT](LICENSE)
