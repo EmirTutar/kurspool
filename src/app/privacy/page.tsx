@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Datenschutz · Kurspool" };
 
@@ -38,7 +39,11 @@ export default function PrivacyPage() {
       <section className="space-y-2">
         <h2 className="font-medium">Auskunft und Löschung</h2>
         <p>
-          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen. Für eine Auskunft wende dich an die Person, die dich für deinen Batch freigeschaltet hat.
+          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen. Für eine Auskunft oder andere Fragen schreibe an{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">
+            {CONTACT_EMAIL}
+          </a>
+          .
         </p>
       </section>
       <Link href="/" className="inline-block underline underline-offset-4">

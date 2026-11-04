@@ -14,9 +14,6 @@ export default function Home() {
         <Link href="/login" className={buttonVariants()}>
           Anmelden
         </Link>
-        <Link href="/privacy" className="text-sm underline underline-offset-4">
-          Datenschutz
-        </Link>
       </div>
       <p className="text-sm text-muted-foreground">
         Inoffizielles Projekt von Studierenden, nur für freigeschaltete Batches.

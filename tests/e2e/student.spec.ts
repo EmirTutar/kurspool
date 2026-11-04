@@ -138,6 +138,15 @@ test.describe("student", () => {
     expect(await page.locator("html").evaluate((node) => node.classList.contains("dark"))).toBe(!isDark);
   });
 
+  test("shows the footer with privacy and contact links", async ({ page }) => {
+    await page.goto("/login");
+    const footer = page.getByRole("contentinfo");
+    await expect(footer.getByRole("link", { name: "Kontakt" })).toHaveAttribute("href", /^mailto:/);
+    await footer.getByRole("link", { name: "Datenschutz" }).click();
+    await expect(page).toHaveURL("/privacy");
+    await expect(page.getByRole("heading", { level: 1, name: "Datenschutz" })).toBeVisible();
+  });
+
   test("uses a true black background in dark mode", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);

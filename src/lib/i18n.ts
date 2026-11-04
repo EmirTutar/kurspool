@@ -14,6 +14,12 @@ const de = {
     theme: "Farbmodus wechseln",
     language: "English",
   },
+  footer: {
+    label: "Rechtliches und Kontakt",
+    note: "Inoffizielles Studierendenprojekt.",
+    privacy: "Datenschutz",
+    contact: "Kontakt",
+  },
   category: {
     session: "Session",
     recording: "Aufzeichnung",
@@ -174,6 +180,12 @@ const en: Dictionary = {
     searchPlaceholder: "Search material",
     theme: "Change color mode",
     language: "Deutsch",
+  },
+  footer: {
+    label: "Legal and contact",
+    note: "Unofficial student project.",
+    privacy: "Privacy",
+    contact: "Contact",
   },
   category: {
     session: "Session",

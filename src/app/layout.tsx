@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Suspense } from "react";
 import { Providers } from "@/components/kurspool/providers";
+import { LocalizedFooter, SiteFooter } from "@/components/kurspool/site-footer";
 import "./globals.css";
 
 const bodyFont = IBM_Plex_Sans({
@@ -33,7 +35,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${bodyFont.variable} ${headingFont.variable} ${monoFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Suspense fallback={<SiteFooter locale="de" />}>
+            <LocalizedFooter />
+          </Suspense>
+        </Providers>
       </body>
     </html>
   );
