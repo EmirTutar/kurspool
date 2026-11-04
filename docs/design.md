@@ -21,7 +21,7 @@ It was built for the AI Software Engineering Bootcamp at Digitale Leute School, 
 
 **Included**
 - **Navigation and links:** a collapsible sidebar with the app's pages, links shared by the batch, and personal links set in Settings. On phones it opens as a panel.
-- **Dashboard:** personal tasks, expandable module cards with a progress circle, new and open items grouped by module, due dates and the last import time.
+- **Dashboard:** personal tasks, due dates, the last import time, and two views: module cards with a progress circle, always three per row, whose content opens below them; or lists of new and open items grouped by module.
 - **Course view:** modules → Classroom topics → items, with attachments, clickable links and a link back to Classroom.
 - **Filters and search:** filter by category and status, and search titles, descriptions and attachments.
 - **Item status:** New, To do, Done or Skipped, set directly in the item's row, plus "mark all as seen" for the backlog when someone joins.

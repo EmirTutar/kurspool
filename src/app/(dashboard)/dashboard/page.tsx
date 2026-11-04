@@ -1,10 +1,12 @@
 import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { DashboardSkeleton } from "@/components/kurspool/skeletons";
 import { addTask, deleteTask, markAllSeen } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
+import { DashboardViews } from "@/components/kurspool/dashboard-views";
 import { ItemRow } from "@/components/kurspool/item-row";
 import { ModuleCards } from "@/components/kurspool/module-card";
 import { TaskCheckbox } from "@/components/kurspool/task-checkbox";
@@ -35,6 +37,7 @@ async function DashboardContent() {
     .order("created_at", { ascending: false });
   const tasks = (taskRows ?? []) as Task[];
 
+  const initialView = (await cookies()).get("dashboard_view")?.value === "list" ? "list" : "cards";
   const now = new Date();
   const titleOf = new Map(modules.map((module) => [module.id, module.title]));
   const fresh = items.filter((item) => item.status === "new");
@@ -44,6 +47,7 @@ async function DashboardContent() {
 
   return (
       <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
+        <h1 className="sr-only">{t.nav.overview}</h1>
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />
@@ -81,65 +85,91 @@ async function DashboardContent() {
           )}
         </section>
 
-        <section aria-labelledby="path-heading">
-          <h2 id="path-heading" className="font-heading text-xl font-bold text-primary">
-            {t.dashboard.path}
-          </h2>
-          <div className="mt-3">
-            <ModuleCards
-              locale={locale}
-              modules={modules.map((module) => {
-                const moduleItems = items.filter((item) => item.module_id === module.id);
-                return {
-                  id: module.id,
-                  title: module.title,
-                  items: moduleItems,
-                  groups: groupByTopic(moduleItems, topics.filter((topic) => topic.module_id === module.id), t.module.moreEntries),
-                };
-              })}
-            />
-          </div>
+        <div>
+          <DashboardViews
+            initialView={initialView}
+            locale={locale}
+            cards={
+              <ModuleCards
+                locale={locale}
+                  modules={modules.map((module) => {
+                  const moduleItems = items.filter((item) => item.module_id === module.id);
+                  return {
+                    id: module.id,
+                    title: module.title,
+                    items: moduleItems,
+                    groups: groupByTopic(moduleItems, topics.filter((topic) => topic.module_id === module.id), t.module.moreEntries),
+                  };
+                })}
+              />
+            }
+            list={
+              <div className="space-y-10">
+                <section aria-labelledby="new-heading">
+                  <div className="flex flex-wrap items-baseline justify-between gap-3">
+                    <h2 id="new-heading" className="font-heading text-2xl font-bold text-primary">
+                      {fresh.length === 0
+                        ? t.dashboard.nothingNew
+                        : fresh.length === 1
+                          ? t.dashboard.oneNew
+                          : fill(t.dashboard.manyNew, { count: fresh.length })}
+                    </h2>
+                    {fresh.length > 0 && (
+                      <ActionForm action={markAllSeen}>
+                        <Button type="submit" variant="outline" size="lg">
+                          {t.dashboard.markAllSeen}
+                        </Button>
+                      </ActionForm>
+                    )}
+                  </div>
+                  {fresh.length > 0 ? (
+                    <div className="mt-3 space-y-6">
+                      {groupByModule(fresh, modules).map((group) => (
+                        <section key={group.id} aria-label={fill(t.dashboard.groupNew, { module: group.title })}>
+                          <h3 className="font-heading text-base font-bold text-primary">{group.title}</h3>
+                          <div className="mt-1">
+                            {group.items.map((item) => (
+                              <ItemRow key={item.id} item={item} locale={locale} />
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-muted-foreground">{t.dashboard.newEmpty}</p>
+                  )}
+                </section>
+
+                <section aria-labelledby="open-heading">
+                  <h2 id="open-heading" className="font-heading text-xl font-bold text-primary">
+                    {fill(t.dashboard.open, { count: open.length })}
+                  </h2>
+                  {open.length > 0 ? (
+                    <div className="mt-2 space-y-6">
+                      {groupByModule(open, modules).map((group) => (
+                        <section key={group.id} aria-label={group.title}>
+                          <h3 className="font-heading text-base font-bold text-primary">{group.title}</h3>
+                          <div className="mt-1">
+                            {group.items.map((item) => (
+                              <ItemRow key={item.id} item={item} locale={locale} />
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-muted-foreground">{t.dashboard.openEmpty}</p>
+                  )}
+                </section>
+              </div>
+            }
+          />
           <p className="mt-3 text-xs text-muted-foreground">
             {batch?.last_synced_at
               ? fill(t.dashboard.lastSync, { date: formatDate(locale, batch.last_synced_at, true) })
               : t.dashboard.neverSynced}
           </p>
-        </section>
-
-        <section aria-labelledby="new-heading">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h1 id="new-heading" className="font-heading text-3xl font-bold text-primary">
-              {fresh.length === 0
-                ? t.dashboard.nothingNew
-                : fresh.length === 1
-                  ? t.dashboard.oneNew
-                  : fill(t.dashboard.manyNew, { count: fresh.length })}
-            </h1>
-            {fresh.length > 0 && (
-              <ActionForm action={markAllSeen}>
-                <Button type="submit" variant="outline" size="lg">
-                  {t.dashboard.markAllSeen}
-                </Button>
-              </ActionForm>
-            )}
-          </div>
-          {fresh.length > 0 ? (
-            <div className="mt-3 space-y-6">
-              {groupByModule(fresh, modules).map((group) => (
-                <section key={group.id} aria-label={fill(t.dashboard.groupNew, { module: group.title })}>
-                  <h2 className="font-heading text-base font-bold text-primary">{group.title}</h2>
-                  <div className="mt-1">
-                    {group.items.map((item) => (
-                      <ItemRow key={item.id} item={item} locale={locale} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-muted-foreground">{t.dashboard.newEmpty}</p>
-          )}
-        </section>
+        </div>
 
         {due.length > 0 && (
           <section aria-labelledby="due-heading">
@@ -160,27 +190,6 @@ async function DashboardContent() {
           </section>
         )}
 
-        <section aria-labelledby="open-heading">
-          <h2 id="open-heading" className="font-heading text-xl font-bold text-primary">
-            {fill(t.dashboard.open, { count: open.length })}
-          </h2>
-          {open.length > 0 ? (
-            <div className="mt-2 space-y-6">
-              {groupByModule(open, modules).map((group) => (
-                <section key={group.id} aria-label={group.title}>
-                  <h3 className="font-heading text-base font-bold text-primary">{group.title}</h3>
-                  <div className="mt-1">
-                    {group.items.map((item) => (
-                      <ItemRow key={item.id} item={item} locale={locale} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-muted-foreground">{t.dashboard.openEmpty}</p>
-          )}
-        </section>
       </main>
   );
 }

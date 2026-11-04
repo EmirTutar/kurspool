@@ -38,14 +38,14 @@ function ItemRows({ count }: { count: number }) {
 
 function ModuleCards({ count }: { count: number }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 md:gap-3">
       {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
-          <div className="min-w-0 flex-1 space-y-2">
+        <div key={index} className="flex flex-col items-start gap-2 rounded-xl bg-card p-2.5 ring-1 ring-foreground/10 md:flex-row md:items-center md:gap-3 md:p-4">
+          <div className="w-full min-w-0 flex-1 space-y-2 md:w-auto">
             <Bone className="h-4 w-3/4" />
             <Bone className="h-3 w-1/2" />
           </div>
-          <Bone className="size-14 shrink-0 rounded-full" />
+          <Bone className="size-11 shrink-0 rounded-full md:size-14" />
         </div>
       ))}
     </div>
@@ -82,12 +82,11 @@ function DashboardContent() {
         </div>
       </section>
       <section className="space-y-3">
-        <Bone className="h-6 w-36" />
+        <div className="flex items-center justify-between gap-3">
+          <Bone className="h-6 w-36" />
+          <Bone className="h-8 w-16" />
+        </div>
         <ModuleCards count={6} />
-      </section>
-      <section className="space-y-3">
-        <Bone className="h-9 w-56" />
-        <ItemRows count={3} />
       </section>
     </>
   );

@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { admin, createBatch, signInAs } from "./helpers";
+
+const showList = (page: Page) => page.getByRole("button", { name: "Listen-Ansicht" }).click();
+const showCards = (page: Page) => page.getByRole("button", { name: "Kästchen-Ansicht" }).click();
 
 test.describe("student", () => {
   test("sees new items, ticks one off, and progress goes up", async ({ page, context }) => {
@@ -7,17 +11,20 @@ test.describe("student", () => {
     await signInAs(context, batch.id);
     await page.goto("/dashboard");
 
-    await expect(page.getByRole("heading", { level: 1, name: "3 neue Einträge" })).toBeVisible();
+    await expect(page.getByText("0 von 3 erledigt, 3 neu")).toBeVisible();
+    await showList(page);
+    await expect(page.getByRole("heading", { level: 2, name: "3 neue Einträge" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Slack" })).toBeVisible();
     // Leading emoji and flags are cleaned from titles.
     await expect(page.getByText("Git session", { exact: true })).toBeVisible();
     await expect(page.getByText("🇬🇧")).toHaveCount(0);
 
     await page.getByRole("checkbox", { name: "Als erledigt markieren: Recording" }).click();
-    await expect(page.getByText("1 von 3 erledigt, 2 neu")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1, name: "2 neue Einträge" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "2 neue Einträge" })).toBeVisible();
 
     await page.reload();
+    await expect(page.getByRole("heading", { level: 2, name: "2 neue Einträge" })).toBeVisible();
+    await showCards(page);
     await expect(page.getByText("1 von 3 erledigt, 2 neu")).toBeVisible();
   });
 
@@ -25,6 +32,7 @@ test.describe("student", () => {
     const batch = await createBatch();
     const user = await signInAs(context, batch.id);
     await page.goto("/dashboard");
+    await showList(page);
 
     await page.getByText("Git session", { exact: true }).click();
     const inlineLink = page.getByRole("link", { name: "https://example.com/guide" });
@@ -53,8 +61,9 @@ test.describe("student", () => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
     await page.goto("/dashboard");
+    await showList(page);
     await page.getByRole("button", { name: "Alle als gesehen markieren" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Nichts Neues" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Nichts Neues" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Offen (3)" })).toBeVisible();
   });
 
@@ -123,7 +132,7 @@ test.describe("student", () => {
     await signInAs(context, batch.id);
     await page.goto("/dashboard");
     await page.getByRole("button", { name: "English" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "3 new items" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your learning path" })).toBeVisible();
     await page.goto("/settings");
     await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -201,27 +210,51 @@ test.describe("student", () => {
     await expect(page.getByRole("button", { name: /Empty module/ })).toHaveCount(0);
   });
 
-  test("shows modules side by side and pushes the others back when one opens", async ({ page, context }) => {
+  test("keeps the module cards in place when one opens, on any screen", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
-    await page.setViewportSize({ width: 1400, height: 900 });
+
+    for (const size of [{ width: 1400, height: 900 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(size);
+      await page.goto("/dashboard");
+      const first = page.getByRole("button", { name: /First module/ });
+      const empty = page.getByText("Empty module");
+      const closed = await first.boundingBox();
+      const closedEmpty = await empty.boundingBox();
+      // Both cards share a row, so the grid is at least two wide even on a phone.
+      expect(closedEmpty?.x ?? 0).toBeGreaterThan((closed?.x ?? 0) + (closed?.width ?? 0) - 1);
+
+      await first.click();
+      await expect(page.getByRole("region", { name: "Week one" })).toBeVisible();
+      const opened = await first.boundingBox();
+      expect(opened).toEqual(closed);
+      expect(await empty.boundingBox()).toEqual(closedEmpty);
+
+      await page.getByRole("button", { name: "Modul schließen" }).click();
+      await expect(page.getByRole("region", { name: "Week one" })).toHaveCount(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
+    }
+  });
+
+  test("switches between the card and list views and remembers the choice", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
     await page.goto("/dashboard");
 
-    const cards = page.locator("[data-module-open]");
-    const first = page.getByRole("button", { name: /First module/ });
-    const empty = page.getByText("Empty module");
-    await expect(cards).toHaveAttribute("data-module-open", "false");
-    const closedFirst = await first.boundingBox();
-    const closedEmpty = await empty.boundingBox();
-    expect(Math.abs((closedFirst?.y ?? 0) - (closedEmpty?.y ?? 999))).toBeLessThan(60);
+    await expect(page.getByRole("button", { name: /First module/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Termine" })).toBeVisible();
 
-    await first.click();
-    await expect(cards).toHaveAttribute("data-module-open", "true");
-    await expect.poll(async () => (await first.boundingBox())?.width ?? 0).toBeGreaterThan((closedFirst?.width ?? 0) * 2);
-    await expect.poll(async () => (await empty.boundingBox())?.y ?? 9999).toBeLessThan((await first.boundingBox())?.y ?? 0);
+    await showList(page);
+    await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Offen (0)" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /First module/ })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Termine" })).toBeVisible();
 
-    await first.click();
-    await expect(cards).toHaveAttribute("data-module-open", "false");
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toBeVisible();
+    await showCards(page);
+    await expect(page.getByRole("button", { name: /First module/ })).toBeVisible();
   });
 
   test("shows a page-shaped placeholder while a page loads", async ({ page, context }) => {
