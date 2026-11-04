@@ -54,14 +54,14 @@ export async function AppFrame({ children }: { children: ReactNode }) {
             <span className="block truncate text-sm text-muted-foreground">{batch.data?.name}</span>
           </Link>
           <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="Hauptnavigation">
-            <Link href="/dashboard" className="underline-offset-4 hover:underline">
+            <Link href="/dashboard" className="inline-block py-1.5 underline-offset-4 hover:underline">
               Übersicht
             </Link>
-            <Link href="/settings" className="underline-offset-4 hover:underline">
+            <Link href="/settings" className="inline-block py-1.5 underline-offset-4 hover:underline">
               Meine Links
             </Link>
             {role === "maintainer" && (
-              <Link href="/maintainer" className="underline-offset-4 hover:underline">
+              <Link href="/maintainer" className="inline-block py-1.5 underline-offset-4 hover:underline">
                 Betreuung
               </Link>
             )}

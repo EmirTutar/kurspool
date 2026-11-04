@@ -130,7 +130,7 @@ async function DashboardContent() {
         </section>
       </aside>
 
-      <main className="min-w-0 space-y-10">
+      <main className="order-first min-w-0 space-y-10 lg:order-none">
         <section aria-labelledby="new-heading">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h1 id="new-heading" className="font-heading text-3xl font-bold text-primary">
