@@ -122,7 +122,7 @@ test('checkGate needs six modules, items, attachments and no errors', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `node --test scripts/spike/`
+Run: `node --test scripts/spike/classroom.test.mjs`
 Expected: FAIL because `classroom.mjs` does not exist.
 
 - [ ] **Step 3: Write the implementation**
@@ -203,7 +203,7 @@ export function checkGate(summaries) {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `node --test scripts/spike/`
+Run: `node --test scripts/spike/classroom.test.mjs`
 Expected: 4 tests pass.
 
 - [ ] **Step 5: Commit**
