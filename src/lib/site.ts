@@ -1,2 +1,9 @@
-/** Shown in the footer and on the privacy page. Change this when you host your own copy. */
-export const CONTACT_EMAIL = "etutar42@gmail.com";
+import "server-only";
+import { getMembership } from "@/lib/membership";
+
+/** The contact address, only for accounts on a batch list. Any Google account can sign in, so a session isn't enough. */
+export async function getContactEmailForMember(): Promise<string | null> {
+  const email = process.env.CONTACT_EMAIL?.trim();
+  if (!email) return null;
+  return (await getMembership()) ? email : null;
+}

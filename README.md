@@ -112,6 +112,7 @@ Import the repository and set these environment variables. The [`.env.example`](
 | `GOOGLE_SYNC_CLIENT_SECRET` | Client secret of the sync project |
 | `SYNC_TOKEN_KEY` | Encrypts the stored Google token; 32 random bytes in base64 |
 | `CRON_SECRET` | Protects the import route; any long random string |
+| `CONTACT_EMAIL` | Optional. Contact address, shown only to accounts on a batch list |
 
 The import runs daily at 04:00 UTC, as set in [`vercel.json`](vercel.json).
 

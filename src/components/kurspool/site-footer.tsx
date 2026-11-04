@@ -2,11 +2,11 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { dictionaries, type Locale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { getContactEmailForMember } from "@/lib/site";
 
 const footerLink = "inline-block py-1 hover:text-foreground hover:underline underline-offset-4";
 
-export function SiteFooter({ locale }: { locale: Locale }) {
+export function SiteFooter({ locale, contactEmail }: { locale: Locale; contactEmail?: string | null }) {
   const t = dictionaries[locale].footer;
   return (
     <footer className="mt-auto">
@@ -17,9 +17,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <Link href="/privacy" className={footerLink}>
             {t.privacy}
           </Link>
-          <a href={`mailto:${CONTACT_EMAIL}`} className={footerLink}>
-            {t.contact}
-          </a>
+          {contactEmail && (
+            <a href={`mailto:${contactEmail}`} className={footerLink}>
+              {t.contact}
+            </a>
+          )}
         </nav>
       </div>
     </footer>
@@ -28,6 +30,6 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
 /** Follows the visitor's language, which is read per request. */
 export async function LocalizedFooter() {
-  const { locale } = await getDictionary();
-  return <SiteFooter locale={locale} />;
+  const [{ locale }, contactEmail] = await Promise.all([getDictionary(), getContactEmailForMember()]);
+  return <SiteFooter locale={locale} contactEmail={contactEmail} />;
 }

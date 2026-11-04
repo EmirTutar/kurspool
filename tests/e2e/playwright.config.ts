@@ -16,6 +16,7 @@ export default defineConfig({
   webServer: {
     command: "npx next start -p 3100",
     cwd: "../..",
+    env: { CONTACT_EMAIL: "contact@kurspool.test" },
     url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

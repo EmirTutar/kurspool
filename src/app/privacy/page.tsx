@@ -1,8 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { Suspense } from "react";
+import { getContactEmailForMember } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Datenschutz · Kurspool" };
+
+const NO_ADDRESS = "Die Kontaktadresse siehst du, sobald du für einen Batch freigeschaltet und angemeldet bist. Ohne Zugang wende dich an die Person, die dich zu Kurspool eingeladen hat.";
+
+async function ContactDetails() {
+  const email = await getContactEmailForMember();
+  if (!email) return <>{NO_ADDRESS}</>;
+  return (
+    <>
+      Für eine Auskunft oder andere Fragen schreibe an{" "}
+      <a href={`mailto:${email}`} className="underline underline-offset-4">
+        {email}
+      </a>
+      .
+    </>
+  );
+}
 
 export default function PrivacyPage() {
   return (
@@ -13,6 +30,10 @@ export default function PrivacyPage() {
           Kurspool ist ein inoffizielles Projekt von Studierenden und kein Angebot der Digitale Leute School.
         </p>
       </div>
+      <section className="space-y-2">
+        <h2 className="font-medium">Verantwortlich</h2>
+        <p>Emircan Tutar</p>
+      </section>
       <section className="space-y-2">
         <h2 className="font-medium">Welche Daten gespeichert werden</h2>
         <ul className="list-disc space-y-1 pl-5">
@@ -39,11 +60,10 @@ export default function PrivacyPage() {
       <section className="space-y-2">
         <h2 className="font-medium">Auskunft und Löschung</h2>
         <p>
-          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen. Für eine Auskunft oder andere Fragen schreibe an{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">
-            {CONTACT_EMAIL}
-          </a>
-          .
+          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen.{" "}
+          <Suspense fallback={NO_ADDRESS}>
+            <ContactDetails />
+          </Suspense>
         </p>
       </section>
       <Link href="/" className="inline-block underline underline-offset-4">

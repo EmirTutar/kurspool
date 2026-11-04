@@ -138,10 +138,31 @@ test.describe("student", () => {
     expect(await page.locator("html").evaluate((node) => node.classList.contains("dark"))).toBe(!isDark);
   });
 
-  test("shows the footer with privacy and contact links", async ({ page }) => {
+  test("shows the contact address only to accounts on a batch list", async ({ page, context }) => {
+    const address = "contact@kurspool.test";
+    await page.goto("/privacy");
+    await expect(page.getByText("Emircan Tutar")).toBeVisible();
+    await expect(page.getByText(/Kontaktadresse siehst du/).first()).toBeVisible();
+    expect(await page.content()).not.toContain(address);
+
+    const outsider = await signInAs(context, null);
+    expect(outsider.email).toBeTruthy();
+    await page.reload();
+    await expect(page.getByText(/Kontaktadresse siehst du/).first()).toBeVisible();
+    expect(await page.content()).not.toContain(address);
+
+    await context.clearCookies();
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.reload();
+    await expect(page.getByRole("link", { name: address })).toHaveAttribute("href", `mailto:${address}`);
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: "Kontakt" })).toBeVisible();
+  });
+
+  test("links to the privacy page from the footer", async ({ page }) => {
     await page.goto("/login");
     const footer = page.getByRole("contentinfo");
-    await expect(footer.getByRole("link", { name: "Kontakt" })).toHaveAttribute("href", /^mailto:/);
+    await expect(footer.getByRole("link", { name: "Kontakt" })).toHaveCount(0);
     await footer.getByRole("link", { name: "Datenschutz" }).click();
     await expect(page).toHaveURL("/privacy");
     await expect(page.getByRole("heading", { level: 1, name: "Datenschutz" })).toBeVisible();
