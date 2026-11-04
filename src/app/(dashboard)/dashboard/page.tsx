@@ -87,6 +87,16 @@ async function DashboardContent() {
               : t.dashboard.neverSynced}
           </p>
         </section>
+      </aside>
+
+      <main className="order-first min-w-0 space-y-10 xl:order-none">
+        {stale && batch?.last_synced_at && (
+          <Alert variant="destructive">
+            <CircleAlert aria-hidden />
+            <AlertTitle>{t.dashboard.staleTitle}</AlertTitle>
+            <AlertDescription>{fill(t.dashboard.staleBody, { date: formatDate(locale, batch.last_synced_at, true) })}</AlertDescription>
+          </Alert>
+        )}
 
         <section aria-labelledby="tasks-heading">
           <h2 id="tasks-heading" className="font-heading text-lg font-bold text-primary">
@@ -116,16 +126,6 @@ async function DashboardContent() {
             </ul>
           )}
         </section>
-      </aside>
-
-      <main className="order-first min-w-0 space-y-10 xl:order-none">
-        {stale && batch?.last_synced_at && (
-          <Alert variant="destructive">
-            <CircleAlert aria-hidden />
-            <AlertTitle>{t.dashboard.staleTitle}</AlertTitle>
-            <AlertDescription>{fill(t.dashboard.staleBody, { date: formatDate(locale, batch.last_synced_at, true) })}</AlertDescription>
-          </Alert>
-        )}
 
         <section aria-labelledby="new-heading">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
