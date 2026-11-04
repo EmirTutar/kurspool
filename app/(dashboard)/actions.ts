@@ -36,7 +36,7 @@ export async function markItemSeen(itemId: string) {
   await supabase
     .from("item_progress")
     .upsert({ user_id: user.id, item_id: itemId, status: "todo" }, { onConflict: "user_id,item_id", ignoreDuplicates: true });
-  refresh();
+  // No refresh: the open item stays in place to be read, and moves on the next page load.
 }
 
 export async function markAllSeen() {
