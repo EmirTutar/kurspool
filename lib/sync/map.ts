@@ -44,6 +44,7 @@ export type ItemRow = {
 };
 
 const RULES: [RegExp, ItemCategory][] = [
+  [/^[^p{L}]*Trainer:/iu, "organization"],
   [/📹/u, "recording"],
   [/✅/u, "feedback"],
   [/🔗|📑|🎙/u, "reading"],

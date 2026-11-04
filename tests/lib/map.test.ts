@@ -18,6 +18,12 @@ describe("categorize", () => {
     expect(categorize(title)).toBe(category);
   });
 
+  it("sorts trainer notes as organization, whatever their emoji", () => {
+    expect(categorize("👨‍🏫 Trainer: Someone")).toBe("organization");
+    expect(categorize("Trainer: Someone")).toBe("organization");
+    expect(categorize("🇬🇧 👨🏼‍💻 Working with a trainer")).toBe("session");
+  });
+
   it("prefers a specific emoji over the flag", () => {
     expect(categorize("🇬🇧 📹 Recording of the session")).toBe("recording");
     expect(categorize("🇬🇧 ✅ Feedback")).toBe("feedback");
