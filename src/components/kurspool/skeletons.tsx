@@ -38,13 +38,12 @@ function ItemRows({ count }: { count: number }) {
 
 function ModuleCards({ count }: { count: number }) {
   return (
-    <div className="space-y-3">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="flex items-center gap-4 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
-          <Bone className="size-5 shrink-0" />
+        <div key={index} className="flex items-center gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
           <div className="min-w-0 flex-1 space-y-2">
-            <Bone className="h-4 w-1/2" />
-            <Bone className="h-3 w-1/3" />
+            <Bone className="h-4 w-3/4" />
+            <Bone className="h-3 w-1/2" />
           </div>
           <Bone className="size-14 shrink-0 rounded-full" />
         </div>
@@ -84,7 +83,7 @@ function DashboardContent() {
       </section>
       <section className="space-y-3">
         <Bone className="h-6 w-36" />
-        <ModuleCards count={4} />
+        <ModuleCards count={6} />
       </section>
       <section className="space-y-3">
         <Bone className="h-9 w-56" />
@@ -96,7 +95,7 @@ function DashboardContent() {
 
 export function DashboardSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
+    <Loading className="mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
       <DashboardContent />
     </Loading>
   );
@@ -174,7 +173,7 @@ export function AppSkeleton() {
         <div className="flex h-14 items-center border-b border-border px-3">
           <Bone className="size-8" />
         </div>
-        <div className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
+        <div className="mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
           <DashboardContent />
         </div>
       </div>

@@ -201,6 +201,29 @@ test.describe("student", () => {
     await expect(page.getByRole("button", { name: /Empty module/ })).toHaveCount(0);
   });
 
+  test("shows modules side by side and pushes the others back when one opens", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.setViewportSize({ width: 1400, height: 900 });
+    await page.goto("/dashboard");
+
+    const cards = page.locator("[data-module-open]");
+    const first = page.getByRole("button", { name: /First module/ });
+    const empty = page.getByText("Empty module");
+    await expect(cards).toHaveAttribute("data-module-open", "false");
+    const closedFirst = await first.boundingBox();
+    const closedEmpty = await empty.boundingBox();
+    expect(Math.abs((closedFirst?.y ?? 0) - (closedEmpty?.y ?? 999))).toBeLessThan(60);
+
+    await first.click();
+    await expect(cards).toHaveAttribute("data-module-open", "true");
+    await expect.poll(async () => (await first.boundingBox())?.width ?? 0).toBeGreaterThan((closedFirst?.width ?? 0) * 2);
+    await expect.poll(async () => (await empty.boundingBox())?.y ?? 9999).toBeLessThan((await first.boundingBox())?.y ?? 0);
+
+    await first.click();
+    await expect(cards).toHaveAttribute("data-module-open", "false");
+  });
+
   test("shows a page-shaped placeholder while a page loads", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);

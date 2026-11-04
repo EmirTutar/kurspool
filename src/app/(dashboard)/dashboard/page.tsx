@@ -6,7 +6,7 @@ import { DashboardSkeleton } from "@/components/kurspool/skeletons";
 import { addTask, deleteTask, markAllSeen } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
 import { ItemRow } from "@/components/kurspool/item-row";
-import { ModuleCard } from "@/components/kurspool/module-card";
+import { ModuleCards } from "@/components/kurspool/module-card";
 import { TaskCheckbox } from "@/components/kurspool/task-checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-      <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-4xl space-y-10 px-4 py-8">
+      <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />
@@ -85,20 +85,19 @@ async function DashboardContent() {
           <h2 id="path-heading" className="font-heading text-xl font-bold text-primary">
             {t.dashboard.path}
           </h2>
-          <div className="mt-3 space-y-3">
-            {modules.map((module) => {
-              const moduleItems = items.filter((item) => item.module_id === module.id);
-              return (
-                <ModuleCard
-                  key={module.id}
-                  id={module.id}
-                  title={module.title}
-                  items={moduleItems}
-                  groups={groupByTopic(moduleItems, topics.filter((topic) => topic.module_id === module.id), t.module.moreEntries)}
-                  locale={locale}
-                />
-              );
-            })}
+          <div className="mt-3">
+            <ModuleCards
+              locale={locale}
+              modules={modules.map((module) => {
+                const moduleItems = items.filter((item) => item.module_id === module.id);
+                return {
+                  id: module.id,
+                  title: module.title,
+                  items: moduleItems,
+                  groups: groupByTopic(moduleItems, topics.filter((topic) => topic.module_id === module.id), t.module.moreEntries),
+                };
+              })}
+            />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             {batch?.last_synced_at

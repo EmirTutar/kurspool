@@ -175,6 +175,12 @@
   }
 }
 
+/* Module cards grow and shrink smoothly when one is opened. */
+::view-transition-group(*) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
 .dark .marker {
   color: #000000;
 }
