@@ -3,11 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { addTask, deleteTask, markAllSeen, toggleTask } from "@/app/(dashboard)/actions";
+import { addTask, deleteTask, markAllSeen } from "@/app/(dashboard)/actions";
 import { ActionForm } from "@/components/kurspool/action-form";
 import { ItemRow } from "@/components/kurspool/item-row";
+import { TaskCheckbox } from "@/components/kurspool/task-checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { loadBatchData } from "@/lib/batch-data";
 import { displayTitle, dueItems, groupByModule, isStale, moduleProgress } from "@/lib/dashboard";
 import { fill, formatDate } from "@/lib/i18n";
@@ -55,20 +58,15 @@ async function DashboardContent() {
                 <li key={module.id}>
                   <Link href={`/modules/${module.id}`} className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-2 rounded-md py-2.5 hover:bg-secondary">
                     <span className="text-center font-heading text-2xl font-bold leading-tight text-primary">{number}</span>
-                    <span className="min-w-0 pr-2">
+                    <div className="min-w-0 pr-2">
                       <span className="block text-sm font-medium leading-snug">{name}</span>
                       {progress.total > 0 ? (
                         <>
-                          <span
-                            role="progressbar"
+                          <Progress
+                            value={progress.percent}
                             aria-label={`${t.dashboard.progress}: ${name}`}
-                            aria-valuenow={progress.percent}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-accent"
-                          >
-                            <span className="block h-full bg-success" style={{ width: `${progress.percent}%` }} />
-                          </span>
+                            className="mt-1.5 **:data-[slot=progress-indicator]:bg-success **:data-[slot=progress-track]:h-1.5 **:data-[slot=progress-track]:bg-accent"
+                          />
                           <span className="mt-1 block text-xs text-muted-foreground">
                             {fill(t.dashboard.finishedOf, { finished: progress.finished, total: progress.total })}
                             {progress.newCount > 0 && fill(t.dashboard.newSuffix, { count: progress.newCount })}
@@ -77,7 +75,7 @@ async function DashboardContent() {
                       ) : (
                         <span className="mt-0.5 block text-xs text-muted-foreground">{t.dashboard.noMaterial}</span>
                       )}
-                    </span>
+                    </div>
                   </Link>
                 </li>
               );
@@ -104,22 +102,14 @@ async function DashboardContent() {
             <ul className="mt-3 divide-y divide-border">
               {tasks.map((task) => (
                 <li key={task.id} className="flex items-start gap-2 py-2 text-sm">
-                  <ActionForm action={toggleTask}>
-                    <input type="hidden" name="taskId" value={task.id} />
-                    <input type="hidden" name="done" value={String(!task.done)} />
-                    <button
-                      type="submit"
-                      aria-label={fill(task.done ? t.tasks.reopen : t.tasks.complete, { title: task.title })}
-                      className={`mt-0.5 size-6 rounded-md border ${task.done ? "border-success bg-success" : "border-input bg-background"}`}
-                    />
-                  </ActionForm>
+                  <TaskCheckbox taskId={task.id} done={task.done} label={fill(t.tasks.complete, { title: task.title })} />
                   <span className={`min-w-0 flex-1 break-words ${task.done ? "text-muted-foreground line-through" : ""}`}>{task.title}</span>
                   <ActionForm action={deleteTask}>
                     <input type="hidden" name="taskId" value={task.id} />
-                    <button type="submit" className="min-h-6 text-xs text-muted-foreground underline underline-offset-2">
+                    <Button type="submit" variant="ghost" size="xs">
                       {t.tasks.delete}
                       <span className="sr-only">: {task.title}</span>
-                    </button>
+                    </Button>
                   </ActionForm>
                 </li>
               ))}
@@ -130,13 +120,11 @@ async function DashboardContent() {
 
       <main className="order-first min-w-0 space-y-10 lg:order-none">
         {stale && batch?.last_synced_at && (
-          <div role="alert" className="flex gap-3 rounded-md border border-destructive p-3 text-sm">
-            <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
-            <p>
-              <strong className="font-semibold">{t.dashboard.staleTitle}</strong>{" "}
-              {fill(t.dashboard.staleBody, { date: formatDate(locale, batch.last_synced_at, true) })}
-            </p>
-          </div>
+          <Alert variant="destructive">
+            <CircleAlert aria-hidden />
+            <AlertTitle>{t.dashboard.staleTitle}</AlertTitle>
+            <AlertDescription>{fill(t.dashboard.staleBody, { date: formatDate(locale, batch.last_synced_at, true) })}</AlertDescription>
+          </Alert>
         )}
 
         <section aria-labelledby="new-heading">
@@ -150,9 +138,9 @@ async function DashboardContent() {
             </h1>
             {fresh.length > 0 && (
               <ActionForm action={markAllSeen}>
-                <button type="submit" className="min-h-9 text-sm underline underline-offset-4">
+                <Button type="submit" variant="outline" size="lg">
                   {t.dashboard.markAllSeen}
-                </button>
+                </Button>
               </ActionForm>
             )}
           </div>

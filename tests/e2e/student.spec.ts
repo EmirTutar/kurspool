@@ -13,7 +13,7 @@ test.describe("student", () => {
     await expect(page.getByText("Git session", { exact: true })).toBeVisible();
     await expect(page.getByText("🇬🇧")).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Als erledigt markieren: Recording" }).click();
+    await page.getByRole("checkbox", { name: "Als erledigt markieren: Recording" }).click();
     await expect(page.getByText("1 von 3 erledigt, 2 neu")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "2 neue Einträge" })).toBeVisible();
 
@@ -40,7 +40,7 @@ test.describe("student", () => {
     await page.reload();
     await expect(page.getByRole("heading", { name: "Offen (1)" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Als erledigt markieren: Git session" }).click();
+    await page.getByRole("checkbox", { name: "Als erledigt markieren: Git session" }).click();
     await expect(page.getByRole("heading", { name: "Offen (0)" })).toBeVisible();
     await page.goto("/search?q=git");
     await page.getByText("Git session", { exact: true }).click();
@@ -81,8 +81,11 @@ test.describe("student", () => {
     await page.getByRole("textbox", { name: "Neue Aufgabe" }).fill("Read the handout");
     await page.getByRole("button", { name: "Hinzufügen" }).click();
     await expect(page.getByText("Read the handout", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Read the handout erledigen" }).click();
-    await expect(page.getByRole("button", { name: "Read the handout wieder öffnen" })).toBeVisible();
+    const task = page.getByRole("checkbox", { name: "Read the handout erledigen" });
+    await task.click();
+    await expect(task).toBeChecked();
+    await page.reload();
+    await expect(task).toBeChecked();
   });
 
   test("filters a module and searches across items", async ({ page, context }) => {
@@ -133,6 +136,14 @@ test.describe("student", () => {
     const isDark = await page.locator("html").evaluate((node) => node.classList.contains("dark"));
     await page.getByRole("button", { name: "Farbmodus wechseln" }).click();
     expect(await page.locator("html").evaluate((node) => node.classList.contains("dark"))).toBe(!isDark);
+  });
+
+  test("uses a true black background in dark mode", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/dashboard");
+    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(0, 0, 0)");
   });
 
   test("deletes the account only after confirming", async ({ page, context }) => {

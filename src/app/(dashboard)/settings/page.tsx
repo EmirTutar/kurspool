@@ -6,6 +6,7 @@ import { ActionForm } from "@/components/kurspool/action-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
@@ -66,7 +67,9 @@ async function SettingsContent() {
         )}
       </section>
 
-      <section aria-labelledby="account-heading" className="space-y-3 border-t border-border pt-6">
+      <Separator />
+
+      <section aria-labelledby="account-heading" className="space-y-3">
         <h2 id="account-heading" className="font-heading text-xl font-bold text-primary">
           {t.settings.accountTitle}
         </h2>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginButton } from "./login-button";
 
@@ -10,9 +11,7 @@ async function LoginForm({ searchParams }: { searchParams: PageProps<"/login">["
   return (
     <>
       {error && (
-        <p role="alert" className="text-sm text-destructive">
-          Die Anmeldung ist fehlgeschlagen. Bitte versuche es noch einmal.
-        </p>
+        <Alert variant="destructive">Die Anmeldung ist fehlgeschlagen. Bitte versuche es noch einmal.</Alert>
       )}
       <LoginButton next={typeof next === "string" ? next : null} />
     </>

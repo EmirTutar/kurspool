@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ItemRow } from "@/components/kurspool/item-row";
+import { buttonVariants } from "@/components/ui/button";
 import { loadBatchData } from "@/lib/batch-data";
 import { CATEGORIES, filterItems, groupByTopic, moduleProgress, STATUSES } from "@/lib/dashboard";
 import { fill } from "@/lib/i18n";
@@ -34,8 +35,7 @@ function FilterLinks({
     ).toString();
     return query ? `?${query}` : "?";
   };
-  const chip = (active: boolean) =>
-    `inline-flex min-h-9 items-center rounded-md px-3 text-sm ${active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-accent"}`;
+  const chip = (active: boolean) => buttonVariants({ variant: active ? "default" : "secondary", size: "lg" });
 
   return (
     <div>

@@ -17,6 +17,9 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { setLocale } from "@/app/(dashboard)/actions";
 import { DocumentLanguage, ThemeToggle } from "@/components/kurspool/providers";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
@@ -38,7 +41,7 @@ function iconFor(link: LinkRow): LucideIcon {
   return /miro/i.test(link.label) ? Layout : LinkIcon;
 }
 
-const navLink = "inline-block py-1.5 underline-offset-4 hover:underline";
+const navLink = buttonVariants({ variant: "ghost", size: "lg" });
 
 export async function AppFrame({ children }: { children: ReactNode }) {
   const membership = await getMembership();
@@ -65,16 +68,16 @@ export async function AppFrame({ children }: { children: ReactNode }) {
           <Form action="/search" role="search" className="order-last flex w-full items-center gap-2 sm:order-none sm:w-64">
             <div className="relative w-full">
               <Search aria-hidden className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
+              <Input
                 name="q"
                 type="search"
                 aria-label={t.nav.search}
                 placeholder={t.nav.searchPlaceholder}
-                className="h-9 w-full rounded-md border border-input bg-background pl-8 pr-2 text-sm"
+                className="h-9 pl-8"
               />
             </div>
           </Form>
-          <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label={t.nav.main}>
+          <nav className="flex flex-wrap items-center gap-1" aria-label={t.nav.main}>
             <Link href="/dashboard" className={navLink}>
               {t.nav.overview}
             </Link>
@@ -88,20 +91,21 @@ export async function AppFrame({ children }: { children: ReactNode }) {
             )}
             <form action={setLocale}>
               <input type="hidden" name="locale" value={locale === "de" ? "en" : "de"} />
-              <button type="submit" lang={locale === "de" ? "en" : "de"} className={navLink}>
+              <Button type="submit" variant="ghost" size="lg" lang={locale === "de" ? "en" : "de"}>
                 {t.nav.language}
-              </button>
+              </Button>
             </form>
             <ThemeToggle label={t.nav.theme} />
             <form action="/auth/signout" method="post">
-              <button type="submit" className={navLink}>
+              <Button type="submit" variant="ghost" size="lg">
                 {t.nav.signOut}
-              </button>
+              </Button>
             </form>
           </nav>
         </div>
         {links.length > 0 && (
-          <nav aria-label={t.nav.links} className="border-t border-border">
+          <nav aria-label={t.nav.links}>
+            <Separator />
             <ul className="mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto px-4 py-3 sm:flex-wrap sm:overflow-visible">
               {links.map((link) => {
                 const Icon = iconFor(link);
@@ -111,7 +115,7 @@ export async function AppFrame({ children }: { children: ReactNode }) {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-md bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-accent"
+                      className={buttonVariants({ variant: "secondary", size: "lg" })}
                     >
                       <Icon aria-hidden className="size-4" />
                       {link.label}

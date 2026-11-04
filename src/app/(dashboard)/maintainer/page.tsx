@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { fill, formatDate } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
@@ -49,9 +51,7 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
   return (
     <>
       {notice && (
-        <p role="status" className="rounded-md border border-border bg-card p-3 text-sm">
-          {notice}
-        </p>
+        <Alert role="status">{notice}</Alert>
       )}
       <Card>
         <CardHeader>
@@ -62,9 +62,7 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
         </CardHeader>
         <CardContent className="space-y-3">
           {credentials && needsReconnect && (
-            <p role="alert" className="text-sm text-destructive">
-              {t.reconnectAlert}
-            </p>
+            <Alert variant="destructive">{t.reconnectAlert}</Alert>
           )}
           <div className="flex flex-wrap gap-3">
             {/* A full page load is required: this route redirects to Google. */}
@@ -78,17 +76,17 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
             )}
           </div>
           {credentials && (
-            <details className="text-sm">
-              <summary className="cursor-pointer rounded-sm underline underline-offset-4">{t.disconnect}</summary>
-              <div className="mt-2 space-y-2">
+            <Collapsible className="text-sm">
+              <CollapsibleTrigger className={buttonVariants({ variant: "outline" })}>{t.disconnect}</CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2">
                 <p className="max-w-prose text-muted-foreground">{t.disconnectIntro}</p>
                 <form action={disconnectClassroom}>
-                  <Button type="submit" variant="destructive" size="sm">
+                  <Button type="submit" variant="destructive">
                     {t.disconnectConfirm}
                   </Button>
                 </form>
-              </div>
-            </details>
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </CardContent>
       </Card>

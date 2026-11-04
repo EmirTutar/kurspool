@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { safeRedirectPath } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/client";
@@ -25,9 +26,7 @@ export function LoginButton({ next }: { next: string | null }) {
         {state === "loading" ? "Weiterleitung zu Google …" : "Mit Google anmelden"}
       </Button>
       {state === "failed" && (
-        <p role="alert" className="text-sm text-destructive">
-          Die Anmeldung konnte nicht gestartet werden. Bitte versuche es noch einmal.
-        </p>
+        <Alert variant="destructive">Die Anmeldung konnte nicht gestartet werden. Bitte versuche es noch einmal.</Alert>
       )}
     </div>
   );

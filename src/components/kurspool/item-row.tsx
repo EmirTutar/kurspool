@@ -1,9 +1,13 @@
 "use client";
 
-import { Check, Clapperboard, Ellipsis, GraduationCap, Info, MessageSquareText, BookOpen, type LucideIcon } from "lucide-react";
+import { BookOpen, Clapperboard, Ellipsis, GraduationCap, Info, MessageSquareText, type LucideIcon } from "lucide-react";
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { markItemSeen, setItemStatus } from "@/app/(dashboard)/actions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { displayTitle, splitLinks, type ItemView, type StoredStatus } from "@/lib/dashboard";
 import { dictionaries, formatDate, type Locale } from "@/lib/i18n";
 import type { ItemCategory } from "@/lib/sync/map";
@@ -35,6 +39,18 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
     });
   }
 
+  function markSeen(open: boolean) {
+    if (!open || status !== "new" || seen) return;
+    setSeen(true);
+    startTransition(async () => {
+      const result = await markItemSeen(item.id);
+      if (!result.ok) {
+        setSeen(false);
+        toast.error(result.message);
+      }
+    });
+  }
+
   const actions = (
     [
       { status: "todo", label: t.item.actionTodo },
@@ -45,34 +61,15 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
 
   return (
     <div className="flex items-start gap-3 border-b border-border py-3 last:border-b-0">
-      <button
-        type="button"
-        aria-label={`${shown === "done" ? t.item.markOpen : t.item.markDone}: ${title}`}
-        aria-pressed={shown === "done"}
-        onClick={() => change(shown === "done" ? "todo" : "done")}
-        className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-md border ${
-          shown === "done" ? "border-success bg-success text-white" : "border-input bg-background hover:bg-secondary"
-        }`}
-      >
-        {shown === "done" && <Check aria-hidden className="size-4" />}
-      </button>
+      <Checkbox
+        checked={shown === "done"}
+        onCheckedChange={(checked) => change(checked ? "done" : "todo")}
+        aria-label={`${t.item.markDone}: ${title}`}
+        className="mt-0.5 size-6 rounded-md data-checked:border-success data-checked:bg-success data-checked:text-white dark:data-checked:bg-success [&_svg]:size-4"
+      />
 
-      <details
-        className="min-w-0 flex-1"
-        onToggle={(event) => {
-          if (event.currentTarget.open && status === "new" && !seen) {
-            setSeen(true);
-            startTransition(async () => {
-              const result = await markItemSeen(item.id);
-              if (!result.ok) {
-                setSeen(false);
-                toast.error(result.message);
-              }
-            });
-          }
-        }}
-      >
-        <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-sm [&::-webkit-details-marker]:hidden">
+      <Collapsible className="min-w-0 flex-1" onOpenChange={markSeen}>
+        <CollapsibleTrigger className="flex w-full cursor-pointer items-start justify-between gap-3 rounded-sm text-left">
           <span className="min-w-0">
             <span className={shown === "new" ? "marker font-medium" : finished ? "text-muted-foreground line-through decoration-1" : "font-medium"}>
               {title}
@@ -84,10 +81,10 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
                 .join(", ")}
             </span>
           </span>
-          <span className="shrink-0 text-sm text-muted-foreground">{t.status[shown]}</span>
-        </summary>
+          <Badge variant="secondary">{t.status[shown]}</Badge>
+        </CollapsibleTrigger>
 
-        <div className="mt-3 space-y-3 pb-1">
+        <CollapsibleContent className="mt-3 space-y-3 pb-1">
           {item.description && (
             <p className="max-w-prose whitespace-pre-line break-words text-sm leading-relaxed">
               {splitLinks(item.description).map((part, index) =>
@@ -118,14 +115,9 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
           )}
           <div className="flex flex-wrap items-center gap-2">
             {actions.map((action) => (
-              <button
-                key={action.status}
-                type="button"
-                onClick={() => change(action.status)}
-                className="min-h-9 rounded-md border border-border bg-background px-3 text-sm hover:bg-secondary"
-              >
+              <Button key={action.status} type="button" variant="outline" size="lg" onClick={() => change(action.status)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
             {item.classroom_url && (
               <a href={item.classroom_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline underline-offset-4">
@@ -133,8 +125,8 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
               </a>
             )}
           </div>
-        </div>
-      </details>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
