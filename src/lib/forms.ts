@@ -38,3 +38,16 @@ export function parseTitle(raw: string): string | null {
   const title = raw.trim();
   return title && title.length <= 200 ? title : null;
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Checks a person's calendar choices before saving them. */
+export function parseCalendarChoices(raw: { cohortIds?: unknown; hiddenGroups?: unknown; view?: unknown }) {
+  const { cohortIds, hiddenGroups, view } = raw;
+  if (!Array.isArray(cohortIds) || cohortIds.length > 20) return null;
+  if (!cohortIds.every((id) => typeof id === "string" && UUID.test(id))) return null;
+  if (!Array.isArray(hiddenGroups) || hiddenGroups.length > 200) return null;
+  if (!hiddenGroups.every((group) => typeof group === "string" && group.length <= 300)) return null;
+  if (view !== "month" && view !== "week" && view !== "day") return null;
+  return { cohort_ids: cohortIds as string[], hidden_groups: hiddenGroups as string[], view };
+}

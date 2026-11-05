@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { refreshBatchCalendars } from "@/lib/calendar/sync";
 import { revokeToken } from "@/lib/classroom/client";
 import { getMembership } from "@/lib/membership";
 import { decryptToken } from "@/lib/sync/crypto";
@@ -11,7 +12,12 @@ export async function syncNow() {
   const membership = await getMembership();
   if (membership?.role !== "maintainer") redirect("/dashboard");
 
-  const result = await executeBatchSync(createAdminClient(), membership.batchId);
+  const db = createAdminClient();
+  const result = await executeBatchSync(db, membership.batchId);
+  if (process.env.SYNC_TOKEN_KEY) {
+    // Failures are recorded per calendar and shown on this page, and don't affect the Classroom result.
+    await refreshBatchCalendars(db, membership.batchId, { key: process.env.SYNC_TOKEN_KEY, force: true }).catch(() => false);
+  }
   redirect(`/maintainer?message=${result.status === "skipped" ? "sync_running" : "sync_finished"}`);
 }
 

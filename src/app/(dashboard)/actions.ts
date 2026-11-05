@@ -5,10 +5,13 @@ import { cookies } from "next/headers";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { describeActionError } from "@/lib/action-log";
 import type { ActionResult } from "@/lib/action-result";
-import { canDeleteAccount, parseEmail, parseItemStatus, parseLink, parseLocale, parseTitle } from "@/lib/forms";
-import type { Dictionary } from "@/lib/i18n";
+import { isCohortName, parseIcalUrl, shortCalendarName } from "@/lib/calendar/ical";
+import { applyEvents, FeedError, readFeed, refreshBatchCalendars } from "@/lib/calendar/sync";
+import { canDeleteAccount, parseCalendarChoices, parseEmail, parseItemStatus, parseLink, parseLocale, parseTitle } from "@/lib/forms";
+import { fill, type Dictionary } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
+import { encryptToken } from "@/lib/sync/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const text = (form: FormData, key: string) => String(form.get(key) ?? "");
@@ -179,6 +182,79 @@ export async function removeAllowedEmail(form: FormData) {
     if (email === user.email?.toLowerCase()) return { ok: false, message: t.feedback.ownEmail };
     const { error } = await supabase.from("batch_allowed_emails").delete().eq("batch_id", batchId).eq("email", email);
     return saved(error, t.feedback.personRemoved);
+  });
+}
+
+/** Saves what this person ticked. Nothing else ever writes these choices. */
+export async function saveCalendarChoices(choices: { cohortIds: string[]; hiddenGroups: string[]; view: string }) {
+  return guarded("saveCalendarChoices", async (t) => {
+    const { supabase, user } = await requireMember();
+    const parsed = parseCalendarChoices(choices);
+    if (!parsed) return { ok: false, message: t.calendar.saveFailed };
+    const { error } = await supabase
+      .from("calendar_preferences")
+      .upsert({ ...parsed, user_id: user.id, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    return { ok: true };
+  });
+}
+
+/** Called when the page opens. Reads calendars not tried in the last 10 minutes, and never bothers the visitor if that fails. */
+export async function refreshCalendarEvents(): Promise<ActionResult> {
+  try {
+    const membership = await getMembership();
+    const key = process.env.SYNC_TOKEN_KEY;
+    if (!membership || !key || !process.env.SUPABASE_SECRET_KEY) return { ok: true };
+    if (await refreshBatchCalendars(createAdminClient(), membership.batchId, { key })) refresh();
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("Action failed", describeActionError("refreshCalendarEvents", error));
+  }
+  return { ok: true };
+}
+
+export async function addCalendar(form: FormData) {
+  return guarded("addCalendar", async (t) => {
+    const { batchId } = await requireMaintainer();
+    const m = t.calendar.manage;
+    const url = parseIcalUrl(text(form, "url"));
+    if (!url) return { ok: false, message: m.invalidAddress };
+    const key = process.env.SYNC_TOKEN_KEY;
+    if (!key) return { ok: false, message: t.maintainer.runError.missing_configuration };
+
+    const now = new Date();
+    let feed;
+    try {
+      feed = await readFeed(url, now);
+    } catch (error) {
+      if (error instanceof FeedError) return { ok: false, message: m.errors[error.code] };
+      throw error;
+    }
+    if (!feed.name) return { ok: false, message: m.noName };
+
+    const title = shortCalendarName(feed.name);
+    const admin = createAdminClient();
+    const { data: calendar, error } = await admin
+      .from("calendars")
+      .upsert(
+        { batch_id: batchId, title, is_cohort: isCohortName(title), last_synced_at: now.toISOString(), last_attempt_at: now.toISOString(), last_error: null },
+        { onConflict: "batch_id,title" },
+      )
+      .select("id")
+      .single();
+    if (error) throw error;
+    const source = await admin.from("calendar_sources").upsert({ calendar_id: calendar.id, encrypted_url: encryptToken(url, key) });
+    if (source.error) throw source.error;
+    await applyEvents(admin, calendar.id, feed.events, now);
+    return saved(null, fill(m.added, { name: title }));
+  });
+}
+
+export async function removeCalendar(form: FormData) {
+  return guarded("removeCalendar", async (t) => {
+    const { batchId } = await requireMaintainer();
+    const { error } = await createAdminClient().from("calendars").delete().eq("id", text(form, "calendarId")).eq("batch_id", batchId);
+    return saved(error, t.calendar.manage.removed);
   });
 }
 

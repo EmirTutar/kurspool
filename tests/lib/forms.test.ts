@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseEmail, parseItemStatus, parseLink, parseTitle } from "@/lib/forms";
+import { parseEmail, parseItemStatus, parseLink, parseTitle, parseCalendarChoices } from "@/lib/forms";
 
 describe("parseLink", () => {
   it("accepts a labeled web link and trims it", () => {
@@ -46,5 +46,16 @@ describe("parseTitle", () => {
     expect(parseTitle("  Task ")).toBe("Task");
     expect(parseTitle("   ")).toBeNull();
     expect(parseTitle("x".repeat(201))).toBeNull();
+  });
+});
+
+describe('parseCalendarChoices', () => {
+  const id = '11111111-2222-3333-4444-555555555555';
+  it('accepts valid choices and rejects anything else', () => {
+    expect(parseCalendarChoices({ cohortIds: [id], hiddenGroups: ['title:daily'], view: 'week' })).toEqual({ cohort_ids: [id], hidden_groups: ['title:daily'], view: 'week' });
+    expect(parseCalendarChoices({ cohortIds: ['nope'], hiddenGroups: [], view: 'week' })).toBeNull();
+    expect(parseCalendarChoices({ cohortIds: [], hiddenGroups: [1], view: 'week' })).toBeNull();
+    expect(parseCalendarChoices({ cohortIds: [], hiddenGroups: [], view: 'year' })).toBeNull();
+    expect(parseCalendarChoices({})).toBeNull();
   });
 });

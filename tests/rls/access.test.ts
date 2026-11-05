@@ -270,4 +270,60 @@ describe("access rules", () => {
       expect((await mia.client.from("sync_runs").select()).data?.length).toBe(1);
     });
   });
+
+  describe("calendars", () => {
+    let calendarA: { id: string };
+    let calendarB: { id: string };
+
+    const makeCalendar = async (batchId: string, title: string) => {
+      const calendar = await insert("calendars", { batch_id: batchId, title: `${title}-${run}` });
+      await insert("calendar_sources", { calendar_id: calendar.id, encrypted_url: "secret" });
+      await insert("calendar_events", {
+        calendar_id: calendar.id,
+        event_key: title,
+        uid: title,
+        title,
+        starts_at: "2026-11-10T09:00:00Z",
+        ends_at: "2026-11-10T10:00:00Z",
+      });
+      return calendar as { id: string };
+    };
+
+    beforeAll(async () => {
+      calendarA = await makeCalendar(batchA.id, "a");
+      calendarB = await makeCalendar(batchB.id, "b");
+    });
+
+    it("shows members only their own batch's calendars and events", async () => {
+      const calendars = (await alice.client.from("calendars").select("id")).data?.map((row) => row.id);
+      expect(calendars).toContain(calendarA.id);
+      expect(calendars).not.toContain(calendarB.id);
+      const events = (await alice.client.from("calendar_events").select("calendar_id")).data ?? [];
+      expect(events.length).toBeGreaterThan(0);
+      expect(events.every((row) => row.calendar_id !== calendarB.id)).toBe(true);
+    });
+
+    it("never exposes the secret addresses, even to maintainers", async () => {
+      expect((await alice.client.from("calendar_sources").select()).error).not.toBeNull();
+      expect((await mia.client.from("calendar_sources").select()).error).not.toBeNull();
+    });
+
+    it("lets nobody signed in change calendars or events", async () => {
+      const write = await mia.client.from("calendars").insert({ batch_id: batchA.id, title: "x" });
+      expect(write.error).not.toBeNull();
+      const edit = await mia.client.from("calendar_events").update({ title: "x" }).eq("calendar_id", calendarA.id);
+      expect(edit.error).not.toBeNull();
+    });
+
+    it("keeps each person's calendar choices private to them", async () => {
+      const save = await alice.client.from("calendar_preferences").upsert({ user_id: alice.id, cohort_ids: [calendarA.id] });
+      expect(save.error).toBeNull();
+      expect((await bob.client.from("calendar_preferences").select()).data).toEqual([]);
+      const change = await bob.client.from("calendar_preferences").update({ cohort_ids: [] }).eq("user_id", alice.id).select();
+      expect(change.data).toEqual([]);
+      const forge = await bob.client.from("calendar_preferences").insert({ user_id: alice.id });
+      expect(forge.error).not.toBeNull();
+      expect((await alice.client.from("calendar_preferences").select("cohort_ids").single()).data?.cohort_ids).toEqual([calendarA.id]);
+    });
+  });
 });

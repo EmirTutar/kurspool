@@ -11,7 +11,7 @@ import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { disconnectClassroom, syncNow } from "./actions";
-import { BatchEditors } from "./batch-editors";
+import { BatchEditors, CalendarEditor } from "./batch-editors";
 import { SyncButton } from "./sync-button";
 
 export const metadata: Metadata = { title: "Kurspool" };
@@ -34,11 +34,11 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
   const { message } = await searchParams;
   const notice = typeof message === "string" ? t.message[message as keyof typeof t.message] : undefined;
 
-  const { data: credentials } = await createAdminClient()
-    .from("sync_credentials")
-    .select("connected_at")
-    .eq("batch_id", membership.batchId)
-    .maybeSingle();
+  // Preview deployments deliberately have no secret key, so everything that needs it stays out of the page.
+  const hasSecrets = Boolean(process.env.SUPABASE_SECRET_KEY && process.env.SYNC_TOKEN_KEY);
+  const credentials = hasSecrets
+    ? (await createAdminClient().from("sync_credentials").select("connected_at").eq("batch_id", membership.batchId).maybeSingle()).data
+    : null;
 
   const { data } = await membership.supabase
     .from("sync_runs")
@@ -54,43 +54,47 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
       {notice && (
         <Alert role="status">{notice}</Alert>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.connectionTitle}</CardTitle>
-          <CardDescription>
-            {credentials ? fill(t.connectedSince, { date: formatDate(locale, credentials.connected_at, true) }) : t.notConnected}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {credentials && needsReconnect && (
-            <Alert variant="destructive">{t.reconnectAlert}</Alert>
-          )}
-          <div className="flex flex-wrap gap-3">
-            {/* A full page load is required: this route redirects to Google. */}
-            <a href="/api/classroom/connect" className={buttonVariants({ variant: needsReconnect ? "default" : "outline" })}>
-              {credentials ? t.reconnect : t.connect}
-            </a>
-            {credentials && (
-              <form action={syncNow}>
-                <SyncButton label={t.syncNow} pendingLabel={t.syncing} />
-              </form>
+      {!hasSecrets && <Alert role="status">{t.previewNotice}</Alert>}
+      {hasSecrets && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.connectionTitle}</CardTitle>
+            <CardDescription>
+              {credentials ? fill(t.connectedSince, { date: formatDate(locale, credentials.connected_at, true) }) : t.notConnected}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {credentials && needsReconnect && (
+              <Alert variant="destructive">{t.reconnectAlert}</Alert>
             )}
-          </div>
-          {credentials && (
-            <Collapsible className="text-sm">
-              <CollapsibleTrigger className={buttonVariants({ variant: "outline" })}>{t.disconnect}</CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-2">
-                <p className="max-w-prose text-muted-foreground">{t.disconnectIntro}</p>
-                <form action={disconnectClassroom}>
-                  <Button type="submit" variant="destructive">
-                    {t.disconnectConfirm}
-                  </Button>
+            <div className="flex flex-wrap gap-3">
+              {/* A full page load is required: this route redirects to Google. */}
+              <a href="/api/classroom/connect" className={buttonVariants({ variant: needsReconnect ? "default" : "outline" })}>
+                {credentials ? t.reconnect : t.connect}
+              </a>
+              {credentials && (
+                <form action={syncNow}>
+                  <SyncButton label={t.syncNow} pendingLabel={t.syncing} />
                 </form>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </div>
+            {credentials && (
+              <Collapsible className="text-sm">
+                <CollapsibleTrigger className={buttonVariants({ variant: "outline" })}>{t.disconnect}</CollapsibleTrigger>
+                <CollapsibleContent className="mt-2 space-y-2">
+                  <p className="max-w-prose text-muted-foreground">{t.disconnectIntro}</p>
+                  <form action={disconnectClassroom}>
+                    <Button type="submit" variant="destructive">
+                      {t.disconnectConfirm}
+                    </Button>
+                  </form>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      <CalendarEditor membership={membership} locale={locale} readOnly={!hasSecrets} t={all.calendar.manage} />
       <BatchEditors membership={membership} t={t} />
       <Card>
         <CardHeader>
