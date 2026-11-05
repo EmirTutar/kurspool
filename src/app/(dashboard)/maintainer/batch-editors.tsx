@@ -9,7 +9,17 @@ import { getMembership } from "@/lib/membership";
 
 type Membership = NonNullable<Awaited<ReturnType<typeof getMembership>>>;
 
-export async function CalendarEditor({ membership, locale, t }: { membership: Membership; locale: Locale; t: Dictionary["calendar"]["manage"] }) {
+export async function CalendarEditor({
+  membership,
+  locale,
+  readOnly,
+  t,
+}: {
+  membership: Membership;
+  locale: Locale;
+  readOnly: boolean;
+  t: Dictionary["calendar"]["manage"];
+}) {
   const { data } = await membership.supabase
     .from("calendars")
     .select("id, title, last_synced_at, last_error")
@@ -24,14 +34,16 @@ export async function CalendarEditor({ membership, locale, t }: { membership: Me
         <CardDescription>{t.intro}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ActionForm action={addCalendar} resetOnSuccess className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-          <div className="space-y-1">
-            <Label htmlFor="calendar-url">{t.address}</Label>
-            {/* A password field, so the secret address isn't left readable on screen. */}
-            <Input id="calendar-url" name="url" type="password" required maxLength={2048} autoComplete="off" />
-          </div>
-          <Button type="submit">{t.add}</Button>
-        </ActionForm>
+        {!readOnly && (
+          <ActionForm action={addCalendar} resetOnSuccess className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="space-y-1">
+              <Label htmlFor="calendar-url">{t.address}</Label>
+              {/* A password field, so the secret address isn't left readable on screen. */}
+              <Input id="calendar-url" name="url" type="password" required maxLength={2048} autoComplete="off" />
+            </div>
+            <Button type="submit">{t.add}</Button>
+          </ActionForm>
+        )}
         <ul className="divide-y divide-border text-sm">
           {calendars.map((calendar) => (
             <li key={calendar.id} className="flex items-center justify-between gap-3 py-2">
@@ -44,13 +56,15 @@ export async function CalendarEditor({ membership, locale, t }: { membership: Me
                   <p className="text-destructive">{t.errors[calendar.last_error as keyof typeof t.errors] ?? calendar.last_error}</p>
                 )}
               </div>
-              <ActionForm action={removeCalendar}>
-                <input type="hidden" name="calendarId" value={calendar.id} />
-                <Button type="submit" variant="outline" size="sm">
-                  {t.remove}
-                  <span className="sr-only">: {calendar.title}</span>
-                </Button>
-              </ActionForm>
+              {!readOnly && (
+                <ActionForm action={removeCalendar}>
+                  <input type="hidden" name="calendarId" value={calendar.id} />
+                  <Button type="submit" variant="outline" size="sm">
+                    {t.remove}
+                    <span className="sr-only">: {calendar.title}</span>
+                  </Button>
+                </ActionForm>
+              )}
             </li>
           ))}
         </ul>

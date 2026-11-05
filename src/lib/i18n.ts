@@ -165,6 +165,7 @@ const de = {
   },
   maintainer: {
     title: "Betreuung",
+    previewNotice: "Vorschau: Die Classroom-Verbindung und das Eintragen von Kalendern gehen nur auf der echten Seite. Kurslinks und Personenliste hier ändern die echten Daten.",
     connectionTitle: "Classroom-Verbindung",
     connectedSince: "Verbunden seit {date}. Der Import läuft einmal täglich automatisch.",
     notConnected: "Noch nicht verbunden. Verbinde das Konto, das in allen Modulen eingeschrieben ist.",
@@ -395,6 +396,7 @@ const en: Dictionary = {
   },
   maintainer: {
     title: "Manage",
+    previewNotice: "Preview: connecting Classroom and adding calendars only work on the live site. Course links and the people list here change the real data.",
     connectionTitle: "Classroom connection",
     connectedSince: "Connected since {date}. The import runs automatically once a day.",
     notConnected: "Not connected yet. Connect the account that is enrolled in all modules.",
