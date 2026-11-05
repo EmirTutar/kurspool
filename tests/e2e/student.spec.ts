@@ -260,7 +260,14 @@ test.describe("student", () => {
   test("shows a page-shaped placeholder while a page loads", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
+    // The placeholder comes with the prefetched page shell. A click before that keeps the old page until the server answers.
+    const prefetched = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === "/dashboard" && url.searchParams.has("_rsc");
+    });
     await page.goto("/settings");
+    await prefetched;
+    await page.waitForLoadState("networkidle");
     await page.route((url) => url.searchParams.has("_rsc"), async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       await route.continue().catch(() => {});
