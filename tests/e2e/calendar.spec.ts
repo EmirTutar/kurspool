@@ -77,6 +77,74 @@ test.describe("calendar", () => {
     await expect(details.getByText("Trainer: Someone")).toBeVisible();
   });
 
+  test("shows the current time as a line in the day and week views only", async ({ page, context }) => {
+    const batch = await createBatch();
+    await addCalendar(batch.id, "Sessions", false, [{ title: "Foundations" }]);
+    await signInAs(context, batch.id);
+    await page.clock.install();
+    await page.goto("/calendar");
+
+    const line = page.getByTestId("now-line");
+    await expect(line).toHaveCount(1);
+    const topOf = () => line.evaluate((element) => parseFloat((element as HTMLElement).style.top));
+    const before = await topOf();
+    await page.clock.fastForward("01:00:00");
+    await expect.poll(topOf).toBeGreaterThan(before);
+
+    await page.getByRole("button", { name: "Weiter" }).click();
+    await expect(line).toHaveCount(0);
+    await page.getByRole("button", { name: "Heute" }).click();
+    await expect(line).toHaveCount(1);
+
+    await page.getByText("Tag", { exact: true }).click();
+    await expect(line).toHaveCount(1);
+    await page.getByText("Monat", { exact: true }).click();
+    await expect(line).toHaveCount(0);
+  });
+
+  test("the overview shows what's running and what's next, and opens the calendar at that event", async ({ page, context }) => {
+    const fromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
+    const batch = await createBatch();
+    await addCalendar(batch.id, "Sessions", false, [
+      { title: "Running session", starts_at: fromNow(-30), ends_at: fromNow(30) },
+      { title: "Dropped session", starts_at: fromNow(40), ends_at: fromNow(50), cancelled_at: fromNow(-60) },
+      { title: "Later session", starts_at: fromNow(120), ends_at: fromNow(180) },
+    ]);
+    await signInAs(context, batch.id);
+    await page.goto("/dashboard");
+
+    const links = page.getByRole("link", { name: /^Im Kalender öffnen/ });
+    await expect(links).toHaveCount(2);
+    await expect(page.getByText("Dropped session")).toHaveCount(0);
+    const order = await page.locator("main h2").allInnerTexts();
+    expect(order.indexOf("Termine")).toBeLessThan(order.indexOf("Dein Lernpfad"));
+
+    await page.getByRole("link", { name: "Im Kalender öffnen: Later session" }).click();
+    await expect(page).toHaveURL(/\/calendar\?event=/);
+    const target = page.getByRole("button", { name: /^Later session/ });
+    await expect(target).toBeInViewport();
+    await expect(target).toHaveClass(/ring-primary/);
+  });
+
+  test("opening an event from the overview doesn't overwrite a saved month view", async ({ page, context }) => {
+    const batch = await createBatch();
+    await addCalendar(batch.id, "Sessions", false, [
+      { title: "Later session", starts_at: new Date(Date.now() + 3_600_000).toISOString(), ends_at: new Date(Date.now() + 7_200_000).toISOString() },
+    ]);
+    const { id: userId } = await signInAs(context, batch.id);
+    const saved = await admin.from("calendar_preferences").insert({ user_id: userId, view: "month" });
+    expect(saved.error).toBeNull();
+
+    await page.goto("/dashboard");
+    await page.getByRole("link", { name: "Im Kalender öffnen: Later session" }).click();
+    await expect(page.getByTestId("now-line")).toHaveCount(1);
+    await page.getByRole("checkbox", { name: "Sessions" }).click();
+    await expect.poll(async () => {
+      const { data } = await admin.from("calendar_preferences").select("hidden_groups, view").eq("user_id", userId).single();
+      return [data?.hidden_groups.length, data?.view];
+    }).toEqual([1, "month"]);
+  });
+
   test("another person's choices start fresh", async ({ page, context }) => {
     const batch = await createBatch();
     await addCalendar(batch.id, "Kohorte 1", true, [{ title: "Daily" }]);

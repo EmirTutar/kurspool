@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { cleanDescription, isCohortName, parseIcal, parseIcalUrl, shortCalendarName } from "@/lib/calendar/ical";
 import {
+  currentAndNext,
   dayKey,
   eventDays,
   eventGroup,
@@ -10,6 +11,7 @@ import {
   shiftDate,
   splitLinks,
   visibleEvents,
+  visibleHours,
   weekDays,
 } from "@/lib/calendar/view";
 
@@ -215,6 +217,67 @@ describe("calendar dates", () => {
     const at = (start: string, end: string) => ({ starts_at: `2026-11-09T${start}:00.000Z`, ends_at: `2026-11-09T${end}:00.000Z` });
     const placed = placeEvents([at("09:00", "10:00"), at("09:30", "10:30"), at("12:00", "13:00")]);
     expect(placed.map((row) => [row.column, row.columns])).toEqual([[0, 2], [1, 2], [0, 1]]);
+  });
+});
+
+describe("currentAndNext", () => {
+  const event = (id: string, starts_at: string, ends_at: string, extra: object = {}) => ({
+    id,
+    starts_at,
+    ends_at,
+    all_day: false,
+    cancelled_at: null as string | null,
+    ...extra,
+  });
+  const now = new Date("2026-11-05T12:00:00.000Z");
+  const ids = (events: ReturnType<typeof event>[]) => {
+    const { current, next } = currentAndNext(events, now);
+    return [current?.id ?? null, next?.id ?? null];
+  };
+
+  it("finds the running event and the following one, whatever the order", () => {
+    const later = event("later", "2026-11-06T09:00:00.000Z", "2026-11-06T10:00:00.000Z");
+    const soon = event("soon", "2026-11-05T14:00:00.000Z", "2026-11-05T15:00:00.000Z");
+    const running = event("running", "2026-11-05T11:30:00.000Z", "2026-11-05T12:30:00.000Z");
+    const over = event("over", "2026-11-05T09:00:00.000Z", "2026-11-05T12:00:00.000Z");
+    expect(ids([later, soon, over, running])).toEqual(["running", "soon"]);
+  });
+
+  it("has neither when nothing fits", () => {
+    expect(ids([])).toEqual([null, null]);
+    expect(ids([event("past", "2026-11-04T09:00:00.000Z", "2026-11-04T10:00:00.000Z")])).toEqual([null, null]);
+  });
+
+  it("skips cancelled events", () => {
+    const cancelled = { cancelled_at: "2026-11-05T08:00:00.000Z" };
+    expect(ids([event("a", "2026-11-05T11:00:00.000Z", "2026-11-05T13:00:00.000Z", cancelled), event("b", "2026-11-05T14:00:00.000Z", "2026-11-05T15:00:00.000Z", cancelled)])).toEqual([null, null]);
+  });
+
+  it("counts a later all-day event as next, but not today's", () => {
+    const allDay = { all_day: true };
+    expect(ids([event("today", "2026-11-05T00:00:00.000Z", "2026-11-06T00:00:00.000Z", allDay)])).toEqual([null, null]);
+    expect(ids([event("tomorrow", "2026-11-06T00:00:00.000Z", "2026-11-07T00:00:00.000Z", allDay)])).toEqual([null, "tomorrow"]);
+  });
+});
+
+describe("visibleHours", () => {
+  const range = (hours: number[]) => [hours[0], hours.at(-1)];
+  const event = (starts_at: string, ends_at: string) => ({ starts_at, ends_at });
+
+  it("shows office hours by default", () => {
+    expect(range(visibleHours([], null))).toEqual([8, 18]);
+    expect(range(visibleHours([], 12 * 60))).toEqual([8, 18]);
+  });
+
+  it("stretches for the current time, so the line is never out of view", () => {
+    expect(range(visibleHours([], 6 * 60 + 30))).toEqual([6, 18]);
+    expect(range(visibleHours([], 21 * 60 + 30))).toEqual([8, 21]);
+    expect(range(visibleHours([], 23 * 60 + 59))).toEqual([8, 23]);
+  });
+
+  it("stretches for events and stops at midnight", () => {
+    expect(range(visibleHours([event("2026-11-09T17:00:00.000Z", "2026-11-09T20:00:00.000Z")], null))).toEqual([8, 20]);
+    expect(range(visibleHours([event("2026-11-09T21:30:00.000Z", "2026-11-10T01:00:00.000Z")], null))).toEqual([8, 23]);
   });
 });
 

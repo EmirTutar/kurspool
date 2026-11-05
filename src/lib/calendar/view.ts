@@ -118,6 +118,36 @@ export function visibleEvents<T extends Pick<CalendarEvent, "calendar_id" | "tit
   });
 }
 
+/** Office hours by default, stretched for events outside them and for the current time. */
+export function visibleHours(events: Pick<CalendarEvent, "starts_at" | "ends_at">[], nowMinutes: number | null): number[] {
+  const ends = events.map((event) => minutesIntoDay(event.starts_at) + (new Date(event.ends_at).getTime() - new Date(event.starts_at).getTime()) / 60_000);
+  const starts = events.map((event) => minutesIntoDay(event.starts_at));
+  if (nowMinutes !== null) {
+    starts.push(nowMinutes);
+    ends.push(nowMinutes + 1);
+  }
+  const first = Math.min(8, ...starts.map((minutes) => Math.floor(minutes / 60)));
+  const last = Math.min(24, Math.max(19, ...ends.map((minutes) => Math.ceil(minutes / 60))));
+  return Array.from({ length: last - first }, (_, index) => first + index);
+}
+
+/** What's running now and what comes next. Cancelled events count as neither, and all-day events only as next. */
+export function currentAndNext<T extends Pick<CalendarEvent, "starts_at" | "ends_at" | "all_day" | "cancelled_at">>(
+  events: T[],
+  now: Date,
+): { current: T | null; next: T | null } {
+  const at = now.getTime();
+  const today = dayKey(now.toISOString(), false);
+  const active = events
+    .filter((event) => !event.cancelled_at)
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+  const running = active.filter(
+    (event) => !event.all_day && new Date(event.starts_at).getTime() <= at && new Date(event.ends_at).getTime() > at,
+  );
+  const next = active.find((event) => (event.all_day ? dayKey(event.starts_at, true) > today : new Date(event.starts_at).getTime() > at));
+  return { current: running.at(-1) ?? null, next: next ?? null };
+}
+
 export type PlacedEvent<T> = { event: T; start: number; end: number; column: number; columns: number };
 
 /** Places a day's timed events side by side where they overlap. */
