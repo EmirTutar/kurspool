@@ -143,7 +143,7 @@ test.describe("student", () => {
     await page.goto("/dashboard");
 
     await expect(page.getByRole("alert").filter({ hasText: "möglicherweise veraltet" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Termine" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fristen" })).toBeVisible();
     await expect(page.getByText(/Prüfe in Classroom, ob du schon abgegeben hast/)).toBeVisible();
   });
 
@@ -263,13 +263,13 @@ test.describe("student", () => {
 
     await expect(page.getByRole("button", { name: /First module/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Termine" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fristen" })).toBeVisible();
 
     await showList(page);
     await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Offen (0)" })).toBeVisible();
     await expect(page.getByRole("button", { name: /First module/ })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Termine" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fristen" })).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole("heading", { name: "3 neue Einträge" })).toBeVisible();

@@ -34,4 +34,8 @@ An event that is only renamed, for example to "Cancelled: ...", can't be recogni
 
 ## Views
 
-Month, week and day, with all times in Europe/Berlin. Clicking an event opens its details: time, place, description with clickable links, and a button for the meeting link.
+Month, week and day, with all times in Europe/Berlin. Clicking an event opens its details: time, place, description with clickable links, and a button for the meeting link. The day and week views mark the current time with a blue line.
+
+## Overview
+
+The overview shows what is running and what comes next, following each person's own filters. Clicking one opens the calendar at that event. If the saved view is the month, that visit uses the day view without changing what is saved.

@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Kurspool" };
 
 const PAGE_SIZE = 1000;
 
-async function CalendarContent() {
+async function CalendarContent({ searchParams }: { searchParams: PageProps<"/calendar">["searchParams"] }) {
   const membership = await getMembership();
   if (!membership) redirect("/no-access");
   const { supabase, user } = membership;
@@ -35,6 +35,9 @@ async function CalendarContent() {
     if ((data?.length ?? 0) < PAGE_SIZE) break;
   }
 
+  const { event: focusId } = await searchParams;
+  const focusEvent = events.find((event) => event.id === focusId) ?? null;
+
   const rows = (calendars.data ?? []) as (CalendarInfo & { last_synced_at: string | null })[];
   const read = rows.map((row) => row.last_synced_at);
   // The oldest read, so the page never claims to be fresher than its stalest calendar.
@@ -44,6 +47,7 @@ async function CalendarContent() {
     <CalendarScreen
       calendars={rows}
       events={events}
+      focusEvent={focusEvent}
       initialCohortIds={(choices.data?.cohort_ids as string[] | undefined) ?? []}
       initialHiddenGroups={(choices.data?.hidden_groups as string[] | undefined) ?? []}
       initialView={(choices.data?.view as CalendarViewName | undefined) ?? "week"}
@@ -54,10 +58,10 @@ async function CalendarContent() {
   );
 }
 
-export default function CalendarRoute() {
+export default function CalendarRoute({ searchParams }: PageProps<"/calendar">) {
   return (
     <Suspense fallback={<CalendarSkeleton />}>
-      <CalendarContent />
+      <CalendarContent searchParams={searchParams} />
     </Suspense>
   );
 }

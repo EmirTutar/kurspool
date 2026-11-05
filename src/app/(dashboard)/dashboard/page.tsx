@@ -10,6 +10,7 @@ import { DashboardViews } from "@/components/kurspool/dashboard-views";
 import { ItemRow } from "@/components/kurspool/item-row";
 import { ModuleCards } from "@/components/kurspool/module-card";
 import { TaskCheckbox } from "@/components/kurspool/task-checkbox";
+import { UpcomingEvents } from "@/components/kurspool/upcoming-events";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,8 @@ async function DashboardContent() {
             </ul>
           )}
         </section>
+
+        <UpcomingEvents membership={membership} locale={locale} now={now} />
 
         <div>
           <DashboardViews
