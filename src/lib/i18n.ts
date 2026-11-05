@@ -15,6 +15,13 @@ const de = {
     language: "English",
     toggleMenu: "Menü ein- oder ausklappen",
   },
+  errorPage: {
+    title: "Diese Seite konnte nicht geladen werden",
+    body: "Lade sie neu. Wenn der Fehler bleibt, geh zur Übersicht und versuche es später noch einmal.",
+    reload: "Seite neu laden",
+    overview: "Zur Übersicht",
+    code: "Fehlercode",
+  },
   footer: {
     label: "Rechtliches und Kontakt",
     note: "Inoffizielles Projekt von Kursteilnehmenden.",
@@ -187,6 +194,13 @@ const en: Dictionary = {
     theme: "Change color mode",
     language: "Deutsch",
     toggleMenu: "Open or close the menu",
+  },
+  errorPage: {
+    title: "This page couldn't load",
+    body: "Reload it. If the error stays, go to the overview and try again later.",
+    reload: "Reload page",
+    overview: "Go to overview",
+    code: "Error code",
   },
   footer: {
     label: "Legal and contact",
