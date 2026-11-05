@@ -139,6 +139,15 @@ export function SettingsSkeleton() {
   );
 }
 
+export function CalendarSkeleton() {
+  return (
+    <Loading className="mx-auto w-full max-w-7xl space-y-4 px-4 py-8">
+      <Bone className="h-9 w-48" />
+      <Bone className="h-[32rem] w-full" />
+    </Loading>
+  );
+}
+
 /** Sits inside the maintainer page's own main element. */
 export function MaintainerSkeleton() {
   return (

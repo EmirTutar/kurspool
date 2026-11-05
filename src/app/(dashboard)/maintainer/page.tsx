@@ -11,7 +11,7 @@ import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { disconnectClassroom, syncNow } from "./actions";
-import { BatchEditors } from "./batch-editors";
+import { BatchEditors, CalendarEditor } from "./batch-editors";
 import { SyncButton } from "./sync-button";
 
 export const metadata: Metadata = { title: "Kurspool" };
@@ -91,6 +91,7 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
           )}
         </CardContent>
       </Card>
+      <CalendarEditor membership={membership} locale={locale} t={all.calendar.manage} />
       <BatchEditors membership={membership} t={t} />
       <Card>
         <CardHeader>

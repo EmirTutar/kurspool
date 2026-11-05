@@ -54,6 +54,8 @@ function PrivacyContent() {
           <li>Name und E-Mail-Adresse aus deiner Google-Anmeldung</li>
           <li>Dein Fortschritt, deine eigenen Aufgaben und deine eigenen Links</li>
           <li>Kursinhalte: Titel, Beschreibungen und Links aus Google Classroom, keine Dateien und keine Noten</li>
+          <li>Kurstermine: Titel, Zeiten, Orte, Beschreibungen und Meeting-Links aus den Kurskalendern</li>
+          <li>Deine Auswahl im Kalender, zum Beispiel deine Kohorte</li>
         </ul>
       </section>
       <section className="space-y-2">
@@ -69,6 +71,14 @@ function PrivacyContent() {
         <p>
           Beim Anmelden liest Kurspool nur Name und E-Mail-Adresse aus deinem Konto, nicht dein Classroom. Kursinhalte
           importiert ein einzelnes Betreuungskonto mit Lesezugriff.
+        </p>
+      </section>
+      <section className="space-y-2">
+        <h2 className="font-medium">Google Kalender</h2>
+        <p>
+          Kurspool verbindet sich nicht mit deinem Google Kalender und sieht deine privaten Termine nicht. Es liest nur
+          die Kurskalender, die in der Betreuung eingetragen sind. Ihre Termine und Meeting-Links sehen alle, die für den
+          Batch freigeschaltet sind.
         </p>
       </section>
       <section className="space-y-2">
