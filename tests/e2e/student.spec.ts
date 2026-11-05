@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
 import { admin, createBatch, signInAs } from "./helpers";
 
 const showList = (page: Page) => page.getByRole("button", { name: "Listen-Ansicht" }).click();
@@ -26,6 +26,26 @@ test.describe("student", () => {
     await expect(page.getByRole("heading", { level: 2, name: "2 neue Einträge" })).toBeVisible();
     await showCards(page);
     await expect(page.getByText("1 von 3 erledigt, 2 neu")).toBeVisible();
+  });
+
+  test("a tick that cannot reach the server stays on the page, reverts and says so", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/dashboard");
+    await showList(page);
+
+    const offline = (route: Route) => (route.request().method() === "POST" ? route.abort("failed") : route.continue());
+    await page.route("**/dashboard*", offline);
+    const box = page.getByRole("checkbox", { name: "Als erledigt markieren: Recording" });
+    await box.click();
+
+    await expect(page.getByText("Die Änderung wurde nicht gespeichert.")).toBeVisible();
+    await expect(box).toHaveAttribute("aria-checked", "false");
+    await expect(page.getByRole("heading", { level: 2, name: "3 neue Einträge" })).toBeVisible();
+
+    await page.unroute("**/dashboard*", offline);
+    await box.click();
+    await expect(page.getByRole("heading", { level: 2, name: "2 neue Einträge" })).toBeVisible();
   });
 
   test("opening an item keeps it readable, then moves it to Open, without overwriting Done", async ({ page, context }) => {

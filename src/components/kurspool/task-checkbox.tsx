@@ -4,6 +4,7 @@ import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 import { toggleTask } from "@/app/(dashboard)/actions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { runAction } from "@/lib/run-action";
 
 export function TaskCheckbox({ taskId, done, label }: { taskId: string; done: boolean; label: string }) {
   const [, startTransition] = useTransition();
@@ -15,7 +16,7 @@ export function TaskCheckbox({ taskId, done, label }: { taskId: string; done: bo
     form.set("done", String(next));
     startTransition(async () => {
       setChecked(next);
-      const result = await toggleTask(form);
+      const result = await runAction(() => toggleTask(form));
       if (!result.ok) toast.error(result.message);
     });
   }

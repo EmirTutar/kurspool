@@ -3,6 +3,7 @@
 import { useRef, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { ActionResult } from "@/lib/action-result";
+import { runAction } from "@/lib/run-action";
 
 /** Runs a server action and shows its outcome, so no click ever fails silently. */
 export function ActionForm({
@@ -26,7 +27,7 @@ export function ActionForm({
       aria-busy={pending}
       action={(form) =>
         startTransition(async () => {
-          const result = await action(form);
+          const result = await runAction(() => action(form));
           if (!result) return;
           if (!result.ok) {
             toast.error(result.message);

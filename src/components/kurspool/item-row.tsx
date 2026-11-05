@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { displayTitle, splitLinks, type ItemView, type StoredStatus } from "@/lib/dashboard";
 import { dictionaries, formatDate, type Locale } from "@/lib/i18n";
+import { runAction } from "@/lib/run-action";
 import type { ItemCategory } from "@/lib/sync/map";
 
 const CATEGORY_ICONS: Record<ItemCategory, LucideIcon> = {
@@ -34,7 +35,7 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
   function change(next: StoredStatus) {
     startTransition(async () => {
       setOptimisticStatus(next);
-      const result = await setItemStatus(item.id, next);
+      const result = await runAction(() => setItemStatus(item.id, next));
       if (!result.ok) toast.error(result.message);
     });
   }
@@ -43,7 +44,7 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
     if (!open || status !== "new" || seen) return;
     setSeen(true);
     startTransition(async () => {
-      const result = await markItemSeen(item.id);
+      const result = await runAction(() => markItemSeen(item.id));
       if (!result.ok) {
         setSeen(false);
         toast.error(result.message);
