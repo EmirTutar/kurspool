@@ -17,6 +17,7 @@ import {
   Moon,
   Search,
   Settings,
+  Star,
   StickyNote,
   Sun,
   UserCog,
@@ -97,6 +98,7 @@ export function AppSidebar({
     { href: "/dashboard", label: t.overview, icon: LayoutDashboard, active: pathname === "/dashboard" || pathname.startsWith("/modules") },
     { href: "/calendar", label: t.calendar, icon: CalendarDays, active: pathname === "/calendar" },
     { href: "/notes", label: t.notes, icon: StickyNote, active: pathname === "/notes" },
+    { href: "/favorites", label: t.favorites, icon: Star, active: pathname === "/favorites" },
     { href: "/settings", label: t.settings, icon: Settings, active: pathname === "/settings" },
     ...(isMaintainer ? [{ href: "/maintainer", label: t.maintainer, icon: UserCog, active: pathname === "/maintainer" }] : []),
   ];

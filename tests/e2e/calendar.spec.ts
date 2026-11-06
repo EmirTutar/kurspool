@@ -113,17 +113,38 @@ test.describe("calendar", () => {
     await signInAs(context, batch.id);
     await page.goto("/dashboard");
 
-    const links = page.getByRole("link", { name: /^Im Kalender öffnen/ });
-    await expect(links).toHaveCount(2);
+    const cards = page.getByRole("button", { name: /^Details: / });
+    await expect(cards).toHaveCount(2);
     await expect(page.getByText("Dropped session")).toHaveCount(0);
     const order = await page.locator("main h2").allInnerTexts();
     expect(order.indexOf("Termine")).toBeLessThan(order.indexOf("Dein Lernpfad"));
 
-    await page.getByRole("link", { name: "Im Kalender öffnen: Later session" }).click();
+    await page.getByRole("button", { name: "Details: Later session" }).click();
+    const details = page.getByRole("dialog");
+    await expect(details.getByRole("heading", { name: "Later session" })).toBeVisible();
+    await details.getByRole("link", { name: "Im Kalender öffnen" }).click();
     await expect(page).toHaveURL(/\/calendar\?event=/);
     const target = page.getByRole("button", { name: /^Later session/ });
     await expect(target).toBeInViewport();
     await expect(target).toHaveClass(/ring-primary/);
+  });
+
+  test("with nothing running, the overview shows the next two events", async ({ page, context }) => {
+    const fromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
+    const batch = await createBatch();
+    await addCalendar(batch.id, "Sessions", false, [
+      { title: "First later", starts_at: fromNow(60), ends_at: fromNow(90) },
+      { title: "Second later", starts_at: fromNow(120), ends_at: fromNow(150) },
+      { title: "Third later", starts_at: fromNow(180), ends_at: fromNow(210) },
+    ]);
+    await signInAs(context, batch.id);
+    await page.goto("/dashboard");
+    await expect(page.getByText("Als Nächstes")).toBeVisible();
+    await expect(page.getByText("Danach")).toBeVisible();
+    await expect(page.getByText("Jetzt", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Details: First later" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Details: Second later" })).toBeVisible();
+    await expect(page.getByText("Third later")).toHaveCount(0);
   });
 
   test("opening an event from the overview doesn't overwrite a saved month view", async ({ page, context }) => {
@@ -136,7 +157,8 @@ test.describe("calendar", () => {
     expect(saved.error).toBeNull();
 
     await page.goto("/dashboard");
-    await page.getByRole("link", { name: "Im Kalender öffnen: Later session" }).click();
+    await page.getByRole("button", { name: "Details: Later session" }).click();
+    await page.getByRole("dialog").getByRole("link", { name: "Im Kalender öffnen" }).click();
     await expect(page.getByTestId("now-line")).toHaveCount(1);
     await page.getByRole("checkbox", { name: "Sessions" }).click();
     await expect.poll(async () => {

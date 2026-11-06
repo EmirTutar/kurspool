@@ -264,40 +264,55 @@ export async function saveItemNote(itemId: string, rawBody: string) {
     const { supabase, user } = await requireMember();
     const body = rawBody.trim();
     if (!itemId || body.length > 10000) return { ok: false, message: t.notes.invalid };
-    if (!body) {
-      const { error } = await supabase.from("notes").delete().eq("user_id", user.id).eq("item_id", itemId);
-      return saved(error, t.notes.removed);
+    const { error } = body
+      ? await supabase
+          .from("notes")
+          .upsert({ user_id: user.id, item_id: itemId, body, updated_at: new Date().toISOString() }, { onConflict: "user_id,item_id" })
+      : await supabase.from("notes").delete().eq("user_id", user.id).eq("item_id", itemId);
+    if (error) throw error;
+    return { ok: true };
+  });
+}
+
+/** Saves a note while it's typed. Without an id it creates the note on the first save that has text. */
+export async function saveNote(input: { id: string | null; title: string; body: string }): Promise<ActionResult & { id?: string }> {
+  return guarded("saveNote", async (t) => {
+    const { supabase, user } = await requireMember();
+    const note = parseNote(String(input.title ?? ""), String(input.body ?? ""));
+    if (!input.id) {
+      if (!note) return { ok: true };
+      const { data, error } = await supabase.from("notes").insert({ ...note, user_id: user.id }).select("id").single();
+      if (error) throw error;
+      return { ok: true, id: data.id as string };
     }
-    const { error } = await supabase
-      .from("notes")
-      .upsert({ user_id: user.id, item_id: itemId, body, updated_at: new Date().toISOString() }, { onConflict: "user_id,item_id" });
-    return saved(error, t.notes.saved);
-  });
-}
-
-export async function addNote(form: FormData) {
-  return guarded("addNote", async (t) => {
-    const { supabase, user } = await requireMember();
-    const note = parseNote(text(form, "title"), text(form, "body"));
-    if (!note) return { ok: false, message: t.notes.invalid };
-    const { error } = await supabase.from("notes").insert({ ...note, user_id: user.id });
-    return saved(error, t.notes.saved);
-  });
-}
-
-export async function updateNote(form: FormData) {
-  return guarded("updateNote", async (t) => {
-    const { supabase, user } = await requireMember();
-    const note = parseNote(text(form, "title"), text(form, "body"));
-    if (!note) return { ok: false, message: t.notes.invalid };
-    // A note on course material keeps the material's title, so only the text changes there.
-    const changes = form.has("title") ? note : { body: note.body };
+    // An emptied note stays until it's deleted on purpose, so a slip of the keyboard can't remove it.
+    const changes = note ?? { title: null, body: "" };
+    if (String(input.title ?? "").length > 200 || String(input.body ?? "").length > 10000) return { ok: false, message: t.notes.invalid };
     const { error } = await supabase
       .from("notes")
       .update({ ...changes, updated_at: new Date().toISOString() })
-      .eq("id", text(form, "noteId"))
+      .eq("id", input.id)
       .eq("user_id", user.id);
-    return saved(error, t.notes.saved);
+    if (error) throw error;
+    return { ok: true };
+  });
+}
+
+export async function setNoteStar(noteId: string, starred: boolean) {
+  return guarded("setNoteStar", async () => {
+    const { supabase, user } = await requireMember();
+    const { error } = await supabase.from("notes").update({ starred: Boolean(starred) }).eq("id", noteId).eq("user_id", user.id);
+    return saved(error);
+  });
+}
+
+export async function setItemFavorite(itemId: string, starred: boolean) {
+  return guarded("setItemFavorite", async () => {
+    const { supabase, user } = await requireMember();
+    const { error } = starred
+      ? await supabase.from("item_favorites").upsert({ user_id: user.id, item_id: itemId }, { ignoreDuplicates: true })
+      : await supabase.from("item_favorites").delete().eq("user_id", user.id).eq("item_id", itemId);
+    return saved(error);
   });
 }
 

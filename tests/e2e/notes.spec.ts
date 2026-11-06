@@ -1,24 +1,26 @@
 import { expect, test } from "@playwright/test";
 import { createBatch, signInAs } from "./helpers";
 
+// Exactly the confirmation: "Wird gespeichert …" contains the same word while a save is still running.
+const SAVED = /^Gespeichert$/;
+
 test.describe("notes", () => {
   test("a note on course material shows on the item and on the notes page, next to a note of one's own", async ({ page, context }) => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
     await page.goto("/search?q=Git");
 
-    await page.getByRole("button", { name: /Git session/ }).click();
+    await page.getByRole("button", { name: /^Git session/ }).click();
     await page.getByRole("textbox", { name: "Meine Notiz" }).fill("Ask about rebase");
-    await page.getByRole("button", { name: "Notiz speichern" }).click();
-    await expect(page.getByText("Notiz gespeichert.")).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
     await page.reload();
     await expect(page.getByText("Mit Notiz")).toBeVisible();
 
     await page.getByRole("link", { name: "Notizen" }).click();
     await page.getByRole("textbox", { name: "Titel (optional)" }).fill("Ideas for the project");
     await page.getByRole("textbox", { name: "Notiz", exact: true }).fill("Use https://example.com/inspiration");
-    await page.getByRole("button", { name: "Notiz speichern" }).click();
-    await expect(page.getByText("Notiz gespeichert.")).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
+    await page.getByRole("button", { name: "Fertig" }).click();
 
     await expect(page.getByRole("tab", { name: "Alle (2)" })).toBeVisible();
     await page.getByRole("tab", { name: "Zu Kursmaterial (1)" }).click();
@@ -38,15 +40,57 @@ test.describe("notes", () => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
     await page.goto("/search?q=Git");
-    await page.getByRole("button", { name: /Git session/ }).click();
-    await page.getByRole("textbox", { name: "Meine Notiz" }).fill("temporary");
-    await page.getByRole("button", { name: "Notiz speichern" }).click();
-    await expect(page.getByText("Notiz gespeichert.")).toBeVisible();
-    await page.getByRole("textbox", { name: "Meine Notiz" }).fill("");
-    await page.getByRole("button", { name: "Notiz speichern" }).click();
-    await expect(page.getByText("Notiz gelöscht.")).toBeVisible();
+    await page.getByRole("button", { name: /^Git session/ }).click();
+    const field = page.getByRole("textbox", { name: "Meine Notiz" });
+    await field.fill("temporary");
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
+    await field.fill("");
+    await field.blur();
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
     await page.goto("/notes");
     await expect(page.getByRole("tab", { name: "Alle (0)" })).toBeVisible();
+  });
+});
+
+test.describe("favorites and quick links", () => {
+  test("stars course material and notes, lists them as favorites, and shows links without opening the item", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/search?q=Git");
+
+    // The attachment is a button right on the row, before the item is opened.
+    await expect(page.getByRole("link", { name: "Handout" })).toHaveAttribute("href", "https://example.com/handout");
+
+    await page.getByRole("button", { name: "Als Favorit markieren: Git session" }).click();
+    await expect(page.getByRole("button", { name: "Als Favorit markieren: Git session" })).toHaveAttribute("aria-pressed", "true");
+
+    await page.goto("/notes");
+    await page.getByRole("textbox", { name: "Notiz", exact: true }).fill("Starred thought");
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
+    await page.getByRole("button", { name: "Fertig" }).click();
+    await page.getByRole("button", { name: "Als Favorit markieren: Ohne Titel" }).click();
+    await expect(page.getByRole("tab", { name: "Favoriten (1)" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Favoriten" }).click();
+    await page.waitForURL(/\/favorites$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Favoriten" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Kursmaterial" }).getByRole("button", { name: /^Git session/ })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Notizen" }).getByText("Starred thought")).toBeVisible();
+    await expect(page.getByText("Recording")).toHaveCount(0);
+  });
+
+  test("keeps an idea draft in the browser until it is shared", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/ideas");
+    await page.getByRole("textbox", { name: "Deine Idee" }).fill("Half a thought");
+    await page.reload();
+    await expect(page.getByRole("textbox", { name: "Deine Idee" })).toHaveValue("Half a thought");
+    await expect(page.getByText("Noch keine Ideen. Schreib die erste.")).toBeVisible();
+    await page.getByRole("button", { name: "Idee teilen" }).click();
+    await expect(page.getByText("Idee geteilt.")).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("textbox", { name: "Deine Idee" })).toHaveValue("");
   });
 });
 

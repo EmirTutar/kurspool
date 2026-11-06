@@ -232,7 +232,7 @@ describe("currentAndNext", () => {
   const now = new Date("2026-11-05T12:00:00.000Z");
   const ids = (events: ReturnType<typeof event>[]) => {
     const { current, next } = currentAndNext(events, now);
-    return [current?.id ?? null, next?.id ?? null];
+    return [current?.id ?? null, next[0]?.id ?? null];
   };
 
   it("finds the running event and the following one, whatever the order", () => {
@@ -241,6 +241,15 @@ describe("currentAndNext", () => {
     const running = event("running", "2026-11-05T11:30:00.000Z", "2026-11-05T12:30:00.000Z");
     const over = event("over", "2026-11-05T09:00:00.000Z", "2026-11-05T12:00:00.000Z");
     expect(ids([later, soon, over, running])).toEqual(["running", "soon"]);
+  });
+
+  it("lists the next two in order", () => {
+    const at = (hour: number) => `2026-11-05T${String(hour).padStart(2, "0")}:00:00.000Z`;
+    const { next } = currentAndNext(
+      [event("c", at(17), at(18)), event("a", at(13), at(14)), event("b", at(15), at(16))],
+      now,
+    );
+    expect(next.map((entry) => entry.id)).toEqual(["a", "b"]);
   });
 
   it("has neither when nothing fits", () => {

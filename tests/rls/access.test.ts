@@ -286,6 +286,14 @@ describe("access rules", () => {
       expect(second.error).not.toBeNull();
     });
 
+    it("keeps favorites private and limited to the person's own batch", async () => {
+      expect((await alice.client.from("item_favorites").insert({ user_id: alice.id, item_id: itemA.id })).error).toBeNull();
+      expect((await alice.client.from("item_favorites").insert({ user_id: alice.id, item_id: itemB.id })).error).not.toBeNull();
+      expect((await bob.client.from("item_favorites").insert({ user_id: alice.id, item_id: itemA.id })).error).not.toBeNull();
+      expect((await bob.client.from("item_favorites").select()).data).toEqual([]);
+      expect((await alice.client.from("item_favorites").select("item_id")).data).toEqual([{ item_id: itemA.id }]);
+    });
+
     it("shares ideas within a batch only, and lets authors and maintainers remove them", async () => {
       const posted = await alice.client.from("ideas").insert({ user_id: alice.id, batch_id: batchA.id, body: "idea" }).select("id").single();
       expect(posted.error).toBeNull();

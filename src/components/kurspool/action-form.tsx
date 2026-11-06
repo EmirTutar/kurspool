@@ -11,11 +11,13 @@ export function ActionForm({
   children,
   className,
   resetOnSuccess = false,
+  onSuccess,
 }: {
   action: (form: FormData) => Promise<ActionResult | void>;
   children: ReactNode;
   className?: string;
   resetOnSuccess?: boolean;
+  onSuccess?: () => void;
 }) {
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -35,6 +37,7 @@ export function ActionForm({
           }
           if (result.message) toast.success(result.message);
           if (resetOnSuccess) formRef.current?.reset();
+          onSuccess?.();
         })
       }
     >

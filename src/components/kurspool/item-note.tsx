@@ -1,37 +1,50 @@
 "use client";
 
-import { useTransition } from "react";
-import { toast } from "sonner";
+import { useRef } from "react";
 import { saveItemNote } from "@/app/(dashboard)/actions";
-import { Button } from "@/components/ui/button";
+import { AutosaveStatus } from "@/components/kurspool/autosave-status";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useAutosave } from "@/hooks/use-autosave";
 import { dictionaries, type Locale } from "@/lib/i18n";
 import { runAction } from "@/lib/run-action";
 
-/** The person's own note on one course item. Saving it empty removes it. */
-export function ItemNote({ itemId, note, locale }: { itemId: string; note: string | null; locale: Locale }) {
+/** The person's own note on one course item. It saves itself, and an emptied note is removed. */
+export function ItemNote({
+  itemId,
+  note,
+  locale,
+  onSaved,
+}: {
+  itemId: string;
+  note: string | null;
+  locale: Locale;
+  onSaved: (hasNote: boolean) => void;
+}) {
   const t = dictionaries[locale].notes;
-  const [pending, startTransition] = useTransition();
+  const field = useRef<HTMLTextAreaElement>(null);
   const fieldId = `note-${itemId}`;
+  const { state, schedule, flush } = useAutosave(async () => {
+    const body = field.current?.value ?? "";
+    const result = await runAction(() => saveItemNote(itemId, body));
+    if (result.ok) onSaved(body.trim().length > 0);
+    return result.ok;
+  });
 
   return (
-    <form
-      className="max-w-prose space-y-2"
-      aria-busy={pending}
-      action={(form) =>
-        startTransition(async () => {
-          const result = await runAction(() => saveItemNote(itemId, String(form.get("body") ?? "")));
-          if (result.ok) toast.success(result.message);
-          else toast.error(result.message);
-        })
-      }
-    >
+    <div className="max-w-prose space-y-1">
       <Label htmlFor={fieldId}>{t.itemNote}</Label>
-      <Textarea id={fieldId} name="body" defaultValue={note ?? ""} maxLength={10000} placeholder={t.itemNotePlaceholder} className="min-h-20" />
-      <Button type="submit" variant="secondary" disabled={pending}>
-        {t.itemNoteSave}
-      </Button>
-    </form>
+      <Textarea
+        ref={field}
+        id={fieldId}
+        defaultValue={note ?? ""}
+        maxLength={10000}
+        placeholder={t.itemNotePlaceholder}
+        className="min-h-20"
+        onChange={schedule}
+        onBlur={() => void flush()}
+      />
+      <AutosaveStatus state={state} locale={locale} />
+    </div>
   );
 }

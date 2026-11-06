@@ -56,7 +56,7 @@ function PrivacyContent() {
           <li>Kursinhalte: Titel, Beschreibungen und Links aus Google Classroom, keine Dateien und keine Noten</li>
           <li>Kurstermine: Titel, Zeiten, Orte, Beschreibungen und Meeting-Links aus den Kurskalendern</li>
           <li>Deine Auswahl im Kalender, zum Beispiel deine Kohorte</li>
-          <li>Deine Notizen, die nur du siehst</li>
+          <li>Deine Notizen und Favoriten, die nur du siehst</li>
           <li>Ideen, die du teilst: Alle in deinem Batch sehen den Text, aber nicht, von wem er ist</li>
         </ul>
       </section>
