@@ -60,7 +60,7 @@ function CardText({ module, locale }: { module: ModuleCardData; locale: Locale }
   );
 }
 
-/** Always three cards per row. Opening one never moves the cards: its content appears below them. */
+/** Three cards per row, six on very wide screens. Opening one never moves the cards: its content appears below them. */
 export function ModuleCards({ modules, locale }: { modules: ModuleCardData[]; locale: Locale }) {
   const t = dictionaries[locale].dashboard;
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export function ModuleCards({ modules, locale }: { modules: ModuleCardData[]; lo
 
   return (
     <div className="space-y-3">
-      <div data-module-open={active ? "true" : "false"} className="grid grid-cols-3 gap-2 md:gap-3">
+      <div data-module-open={active ? "true" : "false"} className="grid grid-cols-3 gap-2 md:gap-3 2xl:grid-cols-6">
         {modules.map((module) => {
           const isActive = module.id === activeId;
           const dimmed = Boolean(active) && !isActive;

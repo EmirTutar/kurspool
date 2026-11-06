@@ -74,7 +74,7 @@ async function ModuleContent({ params, searchParams }: Props) {
   const groups = groupByTopic(visible, topics.filter((topic) => topic.module_id === id), t.module.moreEntries);
 
   return (
-    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-6 px-4 md:px-6 xl:px-10 py-8">
       <div>
         <Link href="/dashboard" className="text-sm underline underline-offset-4">
           {t.module.back}
@@ -106,7 +106,8 @@ async function ModuleContent({ params, searchParams }: Props) {
             />
           </div>
           {groups.length > 0 ? (
-            groups.map((group) => (
+            <div className="grid items-start gap-x-10 gap-y-6 2xl:grid-cols-2">
+            {groups.map((group) => (
               <section key={group.id} aria-label={group.title}>
                 <h2 className="font-heading text-xl font-bold text-primary">{group.title}</h2>
                 <div className="mt-1">
@@ -115,7 +116,8 @@ async function ModuleContent({ params, searchParams }: Props) {
                   ))}
                 </div>
               </section>
-            ))
+            ))}
+            </div>
           ) : (
             <p className="text-muted-foreground">{t.module.noResults}</p>
           )}

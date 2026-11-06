@@ -47,7 +47,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-      <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
+      <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-10 px-4 md:px-6 xl:px-10 py-8">
         <h1 className="sr-only">{t.nav.overview}</h1>
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">

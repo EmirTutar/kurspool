@@ -94,7 +94,7 @@ function DashboardContent() {
 
 export function DashboardSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
+    <Loading className="w-full space-y-10 px-4 md:px-6 xl:px-10 py-8">
       <DashboardContent />
     </Loading>
   );
@@ -102,7 +102,7 @@ export function DashboardSkeleton() {
 
 export function ModuleSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
+    <Loading className="w-full space-y-6 px-4 md:px-6 xl:px-10 py-8">
       <div className="space-y-3">
         <Bone className="h-4 w-24" />
         <Bone className="h-9 w-2/3" />
@@ -123,7 +123,7 @@ export function ModuleSkeleton() {
 
 export function SearchSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8">
+    <Loading className="w-full space-y-4 px-4 md:px-6 xl:px-10 py-8">
       <Bone className="h-9 w-1/2" />
       <ItemRows count={5} />
     </Loading>
@@ -132,7 +132,7 @@ export function SearchSkeleton() {
 
 export function SettingsSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-2xl space-y-8 px-4 py-8">
+    <Loading className="w-full space-y-8 px-4 md:px-6 xl:px-10 py-8">
       <Bone className="h-9 w-48" />
       <FormCards />
     </Loading>
@@ -141,7 +141,7 @@ export function SettingsSkeleton() {
 
 export function CalendarSkeleton() {
   return (
-    <Loading className="mx-auto w-full max-w-7xl space-y-4 px-4 py-8">
+    <Loading className="w-full space-y-4 px-4 md:px-6 xl:px-10 py-8">
       <Bone className="h-9 w-48" />
       <Bone className="h-[32rem] w-full" />
     </Loading>
@@ -181,7 +181,7 @@ export function AppSkeleton() {
         <div className="flex h-14 items-center border-b border-border px-3">
           <Bone className="size-8" />
         </div>
-        <div className="mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
+        <div className="w-full space-y-10 px-4 md:px-6 xl:px-10 py-8">
           <DashboardContent />
         </div>
       </div>

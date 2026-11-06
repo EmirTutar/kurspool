@@ -17,21 +17,30 @@ test.describe("notes", () => {
     await expect(page.getByText("Mit Notiz")).toBeVisible();
 
     await page.getByRole("link", { name: "Notizen" }).click();
-    await page.getByRole("textbox", { name: "Titel (optional)" }).fill("Ideas for the project");
-    await page.getByRole("textbox", { name: "Notiz", exact: true }).fill("Use https://example.com/inspiration");
+    // A fresh, untitled note is open on the right from the start.
+    await page.getByRole("textbox", { name: "Titel", exact: true }).fill("Ideas for the project");
+    // Typing on while the first save still runs must not create the note twice.
+    await page.getByRole("textbox", { name: "Notiz", exact: true }).pressSequentially("Use **bold** and [the site](https://example.com/inspiration)", { delay: 15 });
     await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
-    await page.getByRole("button", { name: "Fertig" }).click();
+    await page.getByRole("tab", { name: "Vorschau" }).click();
+    const preview = page.getByRole("tabpanel", { name: "Vorschau" });
+    await expect(preview.locator("strong", { hasText: "bold" })).toBeVisible();
+    await expect(preview.getByRole("link", { name: "the site" })).toHaveAttribute("href", "https://example.com/inspiration");
 
+    const list = page.getByRole("complementary", { name: "Deine Notizen" });
     await expect(page.getByRole("tab", { name: "Alle (2)" })).toBeVisible();
     await page.getByRole("tab", { name: "Zu Kursmaterial (1)" }).click();
-    const panel = page.getByRole("tabpanel", { name: "Zu Kursmaterial (1)" });
-    await expect(panel.getByText("Ask about rebase")).toBeVisible();
-    await expect(panel.getByText("Ideas for the project")).toHaveCount(0);
+    await expect(list.getByRole("button", { name: /Ideas for the project/ })).toHaveCount(0);
+    await list.getByRole("button", { name: /^Git session/ }).click();
+    await expect(page).toHaveURL(/\/notes\?note=/);
+    await expect(page.getByRole("textbox", { name: "Notiz", exact: true })).toHaveValue("Ask about rebase");
     await page.getByRole("tab", { name: "Eigene (1)" }).click();
-    await expect(page.getByRole("tabpanel", { name: "Eigene (1)" }).getByRole("link", { name: "https://example.com/inspiration" })).toBeVisible();
+    await list.getByRole("button", { name: /^Ideas for the project/ }).click();
+    await expect(page.getByRole("textbox", { name: "Titel", exact: true })).toHaveValue("Ideas for the project");
 
     await page.getByRole("tab", { name: "Zu Kursmaterial (1)" }).click();
-    await page.getByRole("link", { name: /Zum Kursmaterial/ }).click();
+    await list.getByRole("button", { name: /^Git session/ }).click();
+    await page.getByRole("link", { name: "Zum Kursmaterial" }).click();
     await expect(page).toHaveURL(/\/modules\/.+#item-/);
     await expect(page.getByRole("heading", { level: 1, name: "0. First module" })).toBeVisible();
   });
@@ -57,11 +66,9 @@ test.describe("deleting notes", () => {
     const batch = await createBatch();
     await signInAs(context, batch.id);
     await page.goto("/notes");
-    await page.getByRole("textbox", { name: "Titel (optional)" }).fill("Shopping list");
+    await page.getByRole("textbox", { name: "Titel", exact: true }).fill("Shopping list");
     await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
-    await page.getByRole("button", { name: "Fertig" }).click();
 
-    await expect(page.getByRole("button", { name: "Bearbeiten: Shopping list" })).toBeVisible();
     await page.getByRole("button", { name: "Löschen: Shopping list" }).click();
     const confirm = page.getByRole("alertdialog");
     await expect(confirm.getByRole("heading", { name: "Notiz löschen?" })).toBeVisible();
@@ -74,6 +81,25 @@ test.describe("deleting notes", () => {
     await page.getByRole("alertdialog").getByRole("button", { name: "Löschen" }).click();
     await expect(page.getByText("Notiz gelöscht.")).toBeVisible();
     await expect(page.getByRole("tab", { name: "Alle (0)" })).toBeVisible();
+    // A fresh note opens in its place.
+    await expect(page.getByRole("textbox", { name: "Titel", exact: true })).toHaveValue("");
+    await page.reload();
+    await expect(page.getByRole("tab", { name: "Alle (0)" })).toBeVisible();
+  });
+
+  test("on a phone, the list and the open note take turns", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/notes");
+    await page.getByRole("button", { name: "Neue Notiz" }).click();
+    await page.getByRole("textbox", { name: "Titel", exact: true }).fill("On the go");
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
+    await page.getByRole("button", { name: "Zur Liste" }).click();
+    await expect(page.getByRole("textbox", { name: "Titel", exact: true })).toBeHidden();
+    await page.getByRole("button", { name: /^On the go/ }).click();
+    await expect(page.getByRole("textbox", { name: "Titel", exact: true })).toHaveValue("On the go");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
   });
 });
 
@@ -92,7 +118,6 @@ test.describe("favorites and quick links", () => {
     await page.goto("/notes");
     await page.getByRole("textbox", { name: "Notiz", exact: true }).fill("Starred thought");
     await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
-    await page.getByRole("button", { name: "Fertig" }).click();
     await page.getByRole("button", { name: "Als Favorit markieren: Ohne Titel" }).click();
     await expect(page.getByRole("tab", { name: "Favoriten (1)" })).toBeVisible();
 
@@ -101,6 +126,8 @@ test.describe("favorites and quick links", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Favoriten" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Kursmaterial" }).getByRole("button", { name: /^Git session/ })).toBeVisible();
     await expect(page.getByRole("region", { name: "Notizen" }).getByText("Starred thought")).toBeVisible();
+    await page.getByRole("region", { name: "Notizen" }).getByRole("link").click();
+    await expect(page.getByRole("textbox", { name: "Notiz", exact: true })).toHaveValue("Starred thought");
     await expect(page.getByText("Recording")).toHaveCount(0);
   });
 

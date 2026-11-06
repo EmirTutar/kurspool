@@ -11,7 +11,7 @@ export function SiteFooter({ locale, contactEmail }: { locale: Locale; contactEm
   return (
     <footer className="mt-auto">
       <Separator />
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-4 text-sm text-muted-foreground">
+      <div className="flex w-full flex-wrap items-center gap-x-6 gap-y-1 px-4 md:px-6 xl:px-10 py-4 text-sm text-muted-foreground">
         <p>© 2026 Kurspool. {t.note}</p>
         <nav aria-label={t.label} className="flex flex-wrap gap-x-6">
           <Link href="/privacy" className={footerLink}>

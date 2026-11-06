@@ -133,7 +133,7 @@ async function MaintainerHeading() {
 
 export default function MaintainerPage({ searchParams }: PageProps<"/maintainer">) {
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-4 px-4 py-10">
+    <main className="w-full space-y-4 px-4 md:px-6 xl:px-10 py-10">
       <Suspense fallback={<MaintainerSkeleton />}>
         <MaintainerHeading />
         <MaintainerContent searchParams={searchParams} />
