@@ -131,11 +131,11 @@ export function visibleHours(events: Pick<CalendarEvent, "starts_at" | "ends_at"
   return Array.from({ length: last - first }, (_, index) => first + index);
 }
 
-/** What's running now and what comes next. Cancelled events count as neither, and all-day events only as next. */
+/** What's running now and the next two after it. Cancelled events count as neither, and all-day events only as coming up. */
 export function currentAndNext<T extends Pick<CalendarEvent, "starts_at" | "ends_at" | "all_day" | "cancelled_at">>(
   events: T[],
   now: Date,
-): { current: T | null; next: T | null } {
+): { current: T | null; next: T[] } {
   const at = now.getTime();
   const today = dayKey(now.toISOString(), false);
   const active = events
@@ -144,8 +144,8 @@ export function currentAndNext<T extends Pick<CalendarEvent, "starts_at" | "ends
   const running = active.filter(
     (event) => !event.all_day && new Date(event.starts_at).getTime() <= at && new Date(event.ends_at).getTime() > at,
   );
-  const next = active.find((event) => (event.all_day ? dayKey(event.starts_at, true) > today : new Date(event.starts_at).getTime() > at));
-  return { current: running.at(-1) ?? null, next: next ?? null };
+  const next = active.filter((event) => (event.all_day ? dayKey(event.starts_at, true) > today : new Date(event.starts_at).getTime() > at));
+  return { current: running.at(-1) ?? null, next: next.slice(0, 2) };
 }
 
 export type PlacedEvent<T> = { event: T; start: number; end: number; column: number; columns: number };

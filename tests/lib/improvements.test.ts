@@ -13,6 +13,8 @@ import { dictionaries } from "@/lib/i18n";
 
 const item = (id: string, extra: Partial<ItemView> = {}): ItemView => ({
   id,
+  note: null,
+  favorite: false,
   module_id: "m1",
   topic_id: null,
   kind: "coursework",

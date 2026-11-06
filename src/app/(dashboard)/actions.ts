@@ -7,7 +7,7 @@ import { describeActionError } from "@/lib/action-log";
 import type { ActionResult } from "@/lib/action-result";
 import { isCohortName, parseIcalUrl, shortCalendarName } from "@/lib/calendar/ical";
 import { applyEvents, FeedError, readFeed, refreshBatchCalendars } from "@/lib/calendar/sync";
-import { canDeleteAccount, parseCalendarChoices, parseEmail, parseItemStatus, parseLink, parseLocale, parseTitle } from "@/lib/forms";
+import { canDeleteAccount, parseCalendarChoices, parseEmail, parseIdea, parseNote, parseItemStatus, parseLink, parseLocale, parseTitle } from "@/lib/forms";
 import { fill, type Dictionary } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
@@ -255,6 +255,91 @@ export async function removeCalendar(form: FormData) {
     const { batchId } = await requireMaintainer();
     const { error } = await createAdminClient().from("calendars").delete().eq("id", text(form, "calendarId")).eq("batch_id", batchId);
     return saved(error, t.calendar.manage.removed);
+  });
+}
+
+/** The note on one course item. Saving it empty removes it. */
+export async function saveItemNote(itemId: string, rawBody: string) {
+  return guarded("saveItemNote", async (t) => {
+    const { supabase, user } = await requireMember();
+    const body = rawBody.trim();
+    if (!itemId || body.length > 10000) return { ok: false, message: t.notes.invalid };
+    const { error } = body
+      ? await supabase
+          .from("notes")
+          .upsert({ user_id: user.id, item_id: itemId, body, updated_at: new Date().toISOString() }, { onConflict: "user_id,item_id" })
+      : await supabase.from("notes").delete().eq("user_id", user.id).eq("item_id", itemId);
+    if (error) throw error;
+    return { ok: true };
+  });
+}
+
+/** Saves a note while it's typed. Without an id it creates the note on the first save that has text. */
+export async function saveNote(input: { id: string | null; title: string; body: string }): Promise<ActionResult & { id?: string }> {
+  return guarded("saveNote", async (t) => {
+    const { supabase, user } = await requireMember();
+    const note = parseNote(String(input.title ?? ""), String(input.body ?? ""));
+    if (!input.id) {
+      if (!note) return { ok: true };
+      const { data, error } = await supabase.from("notes").insert({ ...note, user_id: user.id }).select("id").single();
+      if (error) throw error;
+      return { ok: true, id: data.id as string };
+    }
+    // An emptied note stays until it's deleted on purpose, so a slip of the keyboard can't remove it.
+    const changes = note ?? { title: null, body: "" };
+    if (String(input.title ?? "").length > 200 || String(input.body ?? "").length > 10000) return { ok: false, message: t.notes.invalid };
+    const { error } = await supabase
+      .from("notes")
+      .update({ ...changes, updated_at: new Date().toISOString() })
+      .eq("id", input.id)
+      .eq("user_id", user.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+}
+
+export async function setNoteStar(noteId: string, starred: boolean) {
+  return guarded("setNoteStar", async () => {
+    const { supabase, user } = await requireMember();
+    const { error } = await supabase.from("notes").update({ starred: Boolean(starred) }).eq("id", noteId).eq("user_id", user.id);
+    return saved(error);
+  });
+}
+
+export async function setItemFavorite(itemId: string, starred: boolean) {
+  return guarded("setItemFavorite", async () => {
+    const { supabase, user } = await requireMember();
+    const { error } = starred
+      ? await supabase.from("item_favorites").upsert({ user_id: user.id, item_id: itemId }, { ignoreDuplicates: true })
+      : await supabase.from("item_favorites").delete().eq("user_id", user.id).eq("item_id", itemId);
+    return saved(error);
+  });
+}
+
+export async function deleteNote(noteId: string) {
+  return guarded("deleteNote", async (t) => {
+    const { supabase, user } = await requireMember();
+    const { error } = await supabase.from("notes").delete().eq("id", noteId).eq("user_id", user.id);
+    return saved(error, t.notes.removed);
+  });
+}
+
+export async function addIdea(form: FormData) {
+  return guarded("addIdea", async (t) => {
+    const { supabase, user, batchId } = await requireMember();
+    const body = parseIdea(text(form, "body"));
+    if (!body) return { ok: false, message: t.ideas.invalid };
+    const { error } = await supabase.from("ideas").insert({ body, user_id: user.id, batch_id: batchId });
+    return saved(error, t.ideas.added);
+  });
+}
+
+/** Access rules let authors remove their own ideas and maintainers remove any in their batch. */
+export async function deleteIdea(ideaId: string) {
+  return guarded("deleteIdea", async (t) => {
+    const { supabase } = await requireMember();
+    const { error } = await supabase.from("ideas").delete().eq("id", ideaId);
+    return saved(error, t.ideas.removed);
   });
 }
 

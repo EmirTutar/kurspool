@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseEmail, parseItemStatus, parseLink, parseTitle, parseCalendarChoices } from "@/lib/forms";
+import { parseEmail, parseItemStatus, parseLink, parseTitle, parseCalendarChoices, parseIdea, parseNote } from "@/lib/forms";
 
 describe("parseLink", () => {
   it("accepts a labeled web link and trims it", () => {
@@ -57,5 +57,18 @@ describe('parseCalendarChoices', () => {
     expect(parseCalendarChoices({ cohortIds: [], hiddenGroups: [1], view: 'week' })).toBeNull();
     expect(parseCalendarChoices({ cohortIds: [], hiddenGroups: [], view: 'year' })).toBeNull();
     expect(parseCalendarChoices({})).toBeNull();
+  });
+});
+
+describe("parseNote and parseIdea", () => {
+  it("needs some text and respects the limits", () => {
+    expect(parseNote("  ", " Body ")).toEqual({ title: null, body: "Body" });
+    expect(parseNote("Title", "")).toEqual({ title: "Title", body: "" });
+    expect(parseNote(" ", " ")).toBeNull();
+    expect(parseNote("x".repeat(201), "body")).toBeNull();
+    expect(parseNote("", "x".repeat(10001))).toBeNull();
+    expect(parseIdea("  An idea ")).toBe("An idea");
+    expect(parseIdea("   ")).toBeNull();
+    expect(parseIdea("x".repeat(2001))).toBeNull();
   });
 });

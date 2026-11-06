@@ -3,6 +3,8 @@ import { filterItems, groupByTopic, moduleProgress, statusOf, type ItemView } fr
 
 const item = (id: string, extra: Partial<ItemView> = {}): ItemView => ({
   id,
+  note: null,
+  favorite: false,
   module_id: "m1",
   topic_id: null,
   kind: "coursework",

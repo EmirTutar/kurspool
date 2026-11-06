@@ -5,7 +5,7 @@ type Membership = NonNullable<Awaited<ReturnType<typeof getMembership>>>;
 
 /** Loads everything a student sees. All reads go through access rules. */
 export async function loadBatchData({ supabase, batchId, user }: Membership) {
-  const [batch, modules, topics, items, progress] = await Promise.all([
+  const [batch, modules, topics, items, progress, notes, favorites] = await Promise.all([
     supabase.from("batches").select("name, last_synced_at").eq("id", batchId).single(),
     supabase.from("modules").select("id, title, position, classroom_url").order("position"),
     supabase.from("topics").select("id, module_id, title").order("title"),
@@ -16,12 +16,18 @@ export async function loadBatchData({ supabase, batchId, user }: Membership) {
       )
       .order("posted_at", { ascending: false, nullsFirst: false }),
     supabase.from("item_progress").select("item_id, status").eq("user_id", user.id),
+    supabase.from("notes").select("item_id, body").eq("user_id", user.id).not("item_id", "is", null),
+    supabase.from("item_favorites").select("item_id").eq("user_id", user.id),
   ]);
 
   const statuses = new Map((progress.data ?? []).map((row) => [row.item_id as string, row.status as StoredStatus]));
-  const views = ((items.data ?? []) as unknown as Omit<ItemView, "status">[]).map((item) => ({
+  const starred = new Set((favorites.data ?? []).map((row) => row.item_id as string));
+  const noteOf = new Map((notes.data ?? []).map((row) => [row.item_id as string, row.body as string]));
+  const views = ((items.data ?? []) as unknown as Omit<ItemView, "status" | "note" | "favorite">[]).map((item) => ({
     ...item,
     status: statusOf(statuses, item.id),
+    note: noteOf.get(item.id) ?? null,
+    favorite: starred.has(item.id),
   }));
 
   return {

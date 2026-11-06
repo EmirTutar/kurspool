@@ -51,3 +51,16 @@ export function parseCalendarChoices(raw: { cohortIds?: unknown; hiddenGroups?: 
   if (view !== "month" && view !== "week" && view !== "day") return null;
   return { cohort_ids: cohortIds as string[], hidden_groups: hiddenGroups as string[], view };
 }
+
+/** A note needs some text in its title or body. */
+export function parseNote(rawTitle: string, rawBody: string): { title: string | null; body: string } | null {
+  const title = rawTitle.trim();
+  const body = rawBody.trim();
+  if (title.length > 200 || body.length > 10000 || (!title && !body)) return null;
+  return { title: title || null, body };
+}
+
+export function parseIdea(raw: string): string | null {
+  const body = raw.trim();
+  return body && body.length <= 2000 ? body : null;
+}

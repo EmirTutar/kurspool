@@ -1,17 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, MapPin, Video } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { saveCalendarChoices } from "@/app/(dashboard)/actions";
 import { CalendarRefresh } from "@/components/kurspool/calendar-refresh";
+import { EventDetails } from "@/components/kurspool/event-details";
 import { Alert } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   dayKey,
@@ -22,7 +23,6 @@ import {
   monthDays,
   placeEvents,
   shiftDate,
-  splitLinks,
   visibleEvents,
   visibleHours,
   weekDays,
@@ -450,64 +450,5 @@ function TimeGrid({ days, events, focusId, kindOf, locale, onOpen, today }: Grid
           ))}
         </div>
     </>
-  );
-}
-
-function EventDetails({ event, calendar, locale }: { event: CalendarEvent; calendar: CalendarInfo | undefined; locale: Locale }) {
-  const t = dictionaries[locale].calendar;
-  const day = dayFormat(locale, dayKey(event.starts_at, event.all_day), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-
-  return (
-    <>
-      <SheetHeader>
-        <SheetTitle className={event.cancelled_at ? "line-through" : ""}>{event.title}</SheetTitle>
-        <SheetDescription>
-          {day}, {timeRange(locale, event, t.allDay)}
-        </SheetDescription>
-      </SheetHeader>
-      <div className="space-y-4 px-4 pb-6">
-        {event.cancelled_at && (
-          <Alert variant="destructive">
-            <strong>{t.cancelled}.</strong> {t.cancelledBody}
-          </Alert>
-        )}
-        {event.meeting_url && !event.cancelled_at && (
-          <a href={event.meeting_url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ className: "w-full" })}>
-            <Video aria-hidden className="size-4" />
-            {t.join}
-          </a>
-        )}
-        {event.location && (
-          <p className="flex items-start gap-2">
-            <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            <span>
-              <span className="sr-only">{t.place}: </span>
-              {splitLinks(event.location).map((piece, index) => (piece.href ? <ExternalText key={index} href={piece.href} /> : <span key={index}>{piece.text}</span>))}
-            </span>
-          </p>
-        )}
-        {event.description && (
-          <div className="space-y-1">
-            <h3 className="font-medium">{t.details}</h3>
-            <p className="whitespace-pre-wrap break-words">
-              {splitLinks(event.description).map((piece, index) => (piece.href ? <ExternalText key={index} href={piece.href} /> : <span key={index}>{piece.text}</span>))}
-            </p>
-          </div>
-        )}
-        {calendar && (
-          <p className="text-muted-foreground">
-            {t.source}: {calendar.title}
-          </p>
-        )}
-      </div>
-    </>
-  );
-}
-
-function ExternalText({ href }: { href: string }) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="break-all underline underline-offset-4">
-      {href}
-    </a>
   );
 }

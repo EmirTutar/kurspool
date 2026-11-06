@@ -16,6 +16,10 @@ export type ItemView = {
   due_at: string | null;
   item_attachments: { id: string; type: AttachmentType; title: string | null; url: string | null }[];
   status: ItemStatus;
+  /** This person's own note on the item, if any. */
+  note: string | null;
+  /** Starred by this person. */
+  favorite: boolean;
 };
 
 export const CATEGORIES: ItemCategory[] = ["session", "recording", "feedback", "reading", "organization", "other"];
