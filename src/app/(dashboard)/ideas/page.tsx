@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { deleteIdea } from "@/app/(dashboard)/actions";
-import { ActionForm } from "@/components/kurspool/action-form";
+import { ConfirmDelete } from "@/components/kurspool/confirm-delete";
 import { IdeaForm } from "@/components/kurspool/idea-form";
 import { SearchSkeleton } from "@/components/kurspool/skeletons";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { splitLinks } from "@/lib/dashboard";
-import { formatDate } from "@/lib/i18n";
+import { fill, formatDate } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
@@ -71,12 +70,15 @@ async function IdeasContent() {
                         )}
                       </p>
                       {(mine || canRemoveAny) && (
-                        <ActionForm action={deleteIdea}>
-                          <input type="hidden" name="ideaId" value={idea.id} />
-                          <Button type="submit" variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                            {t.delete}
-                          </Button>
-                        </ActionForm>
+                        <div className="flex justify-end">
+                          <ConfirmDelete
+                            label={fill(t.deleteLabel, { date: formatDate(locale, idea.created_at, true) })}
+                            title={t.confirmTitle}
+                            description={t.confirmBody}
+                            locale={locale}
+                            onConfirm={deleteIdea.bind(null, idea.id)}
+                          />
+                        </div>
                       )}
                     </CardContent>
                   </Card>

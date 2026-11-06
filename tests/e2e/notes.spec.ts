@@ -52,6 +52,31 @@ test.describe("notes", () => {
   });
 });
 
+test.describe("deleting notes", () => {
+  test("asks in a dialog first, and cancelling keeps the note", async ({ page, context }) => {
+    const batch = await createBatch();
+    await signInAs(context, batch.id);
+    await page.goto("/notes");
+    await page.getByRole("textbox", { name: "Titel (optional)" }).fill("Shopping list");
+    await expect(page.getByRole("status").filter({ hasText: SAVED })).toBeVisible();
+    await page.getByRole("button", { name: "Fertig" }).click();
+
+    await expect(page.getByRole("button", { name: "Bearbeiten: Shopping list" })).toBeVisible();
+    await page.getByRole("button", { name: "Löschen: Shopping list" }).click();
+    const confirm = page.getByRole("alertdialog");
+    await expect(confirm.getByRole("heading", { name: "Notiz löschen?" })).toBeVisible();
+    await expect(confirm.getByText("„Shopping list“ wird endgültig gelöscht.", { exact: false })).toBeVisible();
+    await confirm.getByRole("button", { name: "Abbrechen" }).click();
+    await expect(confirm).toHaveCount(0);
+    await expect(page.getByRole("tab", { name: "Alle (1)" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Löschen: Shopping list" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Löschen" }).click();
+    await expect(page.getByText("Notiz gelöscht.")).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Alle (0)" })).toBeVisible();
+  });
+});
+
 test.describe("favorites and quick links", () => {
   test("stars course material and notes, lists them as favorites, and shows links without opening the item", async ({ page, context }) => {
     const batch = await createBatch();
@@ -113,12 +138,15 @@ test.describe("ideas", () => {
       await otherPage.goto("/ideas");
       await expect(otherPage.getByText("A dark mode for the calendar")).toBeVisible();
       await expect(otherPage.getByText("Von dir")).toHaveCount(0);
-      await expect(otherPage.getByRole("button", { name: "Löschen" })).toHaveCount(0);
+      await expect(otherPage.getByRole("button", { name: /löschen/ })).toHaveCount(0);
     } finally {
       await other.close();
     }
 
-    await page.getByRole("button", { name: "Löschen" }).click();
+    await page.getByRole("button", { name: /^Idee vom .* löschen$/ }).click();
+    const confirm = page.getByRole("alertdialog");
+    await expect(confirm.getByRole("heading", { name: "Idee löschen?" })).toBeVisible();
+    await confirm.getByRole("button", { name: "Löschen" }).click();
     await expect(page.getByText("Idee gelöscht.")).toBeVisible();
     await expect(page.getByText("A dark mode for the calendar")).toHaveCount(0);
   });

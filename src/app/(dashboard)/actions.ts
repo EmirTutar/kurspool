@@ -316,10 +316,10 @@ export async function setItemFavorite(itemId: string, starred: boolean) {
   });
 }
 
-export async function deleteNote(form: FormData) {
+export async function deleteNote(noteId: string) {
   return guarded("deleteNote", async (t) => {
     const { supabase, user } = await requireMember();
-    const { error } = await supabase.from("notes").delete().eq("id", text(form, "noteId")).eq("user_id", user.id);
+    const { error } = await supabase.from("notes").delete().eq("id", noteId).eq("user_id", user.id);
     return saved(error, t.notes.removed);
   });
 }
@@ -335,10 +335,10 @@ export async function addIdea(form: FormData) {
 }
 
 /** Access rules let authors remove their own ideas and maintainers remove any in their batch. */
-export async function deleteIdea(form: FormData) {
+export async function deleteIdea(ideaId: string) {
   return guarded("deleteIdea", async (t) => {
     const { supabase } = await requireMember();
-    const { error } = await supabase.from("ideas").delete().eq("id", text(form, "ideaId"));
+    const { error } = await supabase.from("ideas").delete().eq("id", ideaId);
     return saved(error, t.ideas.removed);
   });
 }

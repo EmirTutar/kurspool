@@ -1,12 +1,12 @@
 "use client";
 
-import { BookOpen, StickyNote } from "lucide-react";
+import { BookOpen, Check, Pencil, StickyNote } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { deleteNote, saveNote, setNoteStar } from "@/app/(dashboard)/actions";
-import { ActionForm } from "@/components/kurspool/action-form";
 import { AutosaveStatus } from "@/components/kurspool/autosave-status";
+import { ConfirmDelete } from "@/components/kurspool/confirm-delete";
 import { FavoriteToggle } from "@/components/kurspool/favorite-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -205,25 +205,30 @@ export function NoteCard({ note, locale }: { note: NoteView; locale: Locale }) {
               <span className="sr-only">: {heading}</span>
             </Link>
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            aria-expanded={editing}
-            onClick={() => {
-              if (editing) router.refresh();
-              setEditing(!editing);
-            }}
-          >
-            {editing ? t.done : t.edit}
-            <span className="sr-only">: {heading}</span>
-          </Button>
-          <ActionForm action={deleteNote}>
-            <input type="hidden" name="noteId" value={note.id} />
-            <Button type="submit" variant="ghost" className="text-destructive hover:text-destructive">
-              {t.delete}
-              <span className="sr-only">: {heading}</span>
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              variant={editing ? "secondary" : "ghost"}
+              size="icon"
+              aria-label={`${editing ? t.done : t.edit}: ${heading}`}
+              title={editing ? t.done : t.edit}
+              aria-pressed={editing}
+              onClick={() => {
+                if (editing) router.refresh();
+                setEditing(!editing);
+              }}
+              className={editing ? "" : "text-muted-foreground"}
+            >
+              {editing ? <Check aria-hidden /> : <Pencil aria-hidden />}
             </Button>
-          </ActionForm>
+            <ConfirmDelete
+              label={`${t.delete}: ${heading}`}
+              title={t.confirmTitle}
+              description={fill(t.confirmBody, { title: heading })}
+              locale={locale}
+              onConfirm={() => deleteNote(note.id)}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>
