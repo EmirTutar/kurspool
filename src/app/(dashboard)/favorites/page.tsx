@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ItemRow } from "@/components/kurspool/item-row";
-import { NoteGrid, type NoteView } from "@/components/kurspool/notes-list";
+import { BookOpen } from "lucide-react";
+import Link from "next/link";
+import { plainSnippet } from "@/components/kurspool/markdown";
+import { noteHeading, type NoteView } from "@/lib/notes";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchSkeleton } from "@/components/kurspool/skeletons";
 import { loadBatchData } from "@/lib/batch-data";
+import { formatDate } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
@@ -27,6 +32,7 @@ async function FavoritesContent() {
   ]);
   const titleOf = new Map(modules.map((module) => [module.id, module.title]));
   const starredItems = items.filter((item) => item.favorite);
+  const starredNotes = (notes.data ?? []) as unknown as NoteView[];
 
   return (
     <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-8 px-4 md:px-6 xl:px-10 py-8">
@@ -53,7 +59,28 @@ async function FavoritesContent() {
         <h2 id="favorite-notes" className="font-heading text-xl font-bold text-primary">
           {t.notes}
         </h2>
-        <NoteGrid notes={(notes.data ?? []) as unknown as NoteView[]} empty={t.emptyNotes} locale={locale} />
+        {starredNotes.length ? (
+          <ul className="space-y-2">
+            {starredNotes.map((note) => (
+              <li key={note.id}>
+                <Link href={`/notes?note=${note.id}`} className="group block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+                  <Card size="sm" className="transition-shadow duration-200 group-hover:shadow-md motion-reduce:transition-none">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-1.5 break-words">
+                        {note.item_id && <BookOpen aria-hidden className="size-4 shrink-0 text-muted-foreground" />}
+                        {noteHeading(note, all.notes.untitled)}
+                      </CardTitle>
+                      {note.body && <CardDescription className="line-clamp-2">{plainSnippet(note.body, 200)}</CardDescription>}
+                      <CardDescription className="text-xs">{formatDate(locale, note.updated_at, true)}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground">{t.emptyNotes}</p>
+        )}
       </section>
       </div>
     </main>

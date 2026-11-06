@@ -57,7 +57,6 @@ async function DashboardContent() {
           </Alert>
         )}
 
-        <div className="grid gap-10 xl:grid-cols-2 xl:[&>*:only-child]:col-span-2">
         <section aria-labelledby="tasks-heading">
           <h2 id="tasks-heading" className="font-heading text-lg font-bold text-primary">
             {t.tasks.title}
@@ -88,7 +87,6 @@ async function DashboardContent() {
         </section>
 
         <UpcomingEvents membership={membership} locale={locale} now={now} />
-        </div>
 
         <div>
           <DashboardViews
@@ -109,7 +107,7 @@ async function DashboardContent() {
               />
             }
             list={
-              <div className="grid gap-10 xl:grid-cols-2">
+              <div className="space-y-10">
                 <section aria-labelledby="new-heading">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <h2 id="new-heading" className="font-heading text-2xl font-bold text-primary">

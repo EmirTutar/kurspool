@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { NewNote, NotesList, type NoteView } from "@/components/kurspool/notes-list";
+import { NotesWorkspace } from "@/components/kurspool/notes-workspace";
+import type { NoteView } from "@/lib/notes";
 import { SearchSkeleton } from "@/components/kurspool/skeletons";
 import { getDictionary } from "@/lib/i18n-server";
 import { getMembership } from "@/lib/membership";
 
 export const metadata: Metadata = { title: "Kurspool" };
 
-async function NotesContent() {
+async function NotesContent({ searchParams }: { searchParams: PageProps<"/notes">["searchParams"] }) {
   const membership = await getMembership();
   if (!membership) redirect("/no-access");
   const { locale, t: all } = await getDictionary();
   const t = all.notes;
+  const { note } = await searchParams;
 
   const { data } = await membership.supabase
     .from("notes")
@@ -27,16 +29,15 @@ async function NotesContent() {
         <h1 className="font-heading text-3xl font-bold text-primary">{t.title}</h1>
         <p className="text-muted-foreground">{t.intro}</p>
       </div>
-      <NewNote locale={locale} />
-      <NotesList notes={notes} locale={locale} />
+      <NotesWorkspace initialNotes={notes} initialId={typeof note === "string" ? note : null} locale={locale} />
     </main>
   );
 }
 
-export default function NotesPage() {
+export default function NotesPage({ searchParams }: PageProps<"/notes">) {
   return (
     <Suspense fallback={<SearchSkeleton />}>
-      <NotesContent />
+      <NotesContent searchParams={searchParams} />
     </Suspense>
   );
 }

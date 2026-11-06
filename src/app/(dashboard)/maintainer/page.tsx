@@ -52,9 +52,9 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
   return (
     <>
       {notice && (
-        <Alert role="status" className="lg:col-span-2">{notice}</Alert>
+        <Alert role="status">{notice}</Alert>
       )}
-      {!hasSecrets && <Alert role="status" className="lg:col-span-2">{t.previewNotice}</Alert>}
+      {!hasSecrets && <Alert role="status">{t.previewNotice}</Alert>}
       {hasSecrets && (
         <Card>
           <CardHeader>
@@ -128,12 +128,12 @@ async function MaintainerContent({ searchParams }: { searchParams: PageProps<"/m
 
 async function MaintainerHeading() {
   const { t } = await getDictionary();
-  return <h1 className="font-heading text-3xl font-bold text-primary lg:col-span-2">{t.maintainer.title}</h1>;
+  return <h1 className="font-heading text-3xl font-bold text-primary">{t.maintainer.title}</h1>;
 }
 
 export default function MaintainerPage({ searchParams }: PageProps<"/maintainer">) {
   return (
-    <main className="grid w-full items-start gap-4 px-4 md:px-6 xl:px-10 py-10 lg:grid-cols-2">
+    <main className="w-full space-y-4 px-4 md:px-6 xl:px-10 py-10">
       <Suspense fallback={<MaintainerSkeleton />}>
         <MaintainerHeading />
         <MaintainerContent searchParams={searchParams} />

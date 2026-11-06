@@ -28,7 +28,6 @@ async function SettingsContent() {
     <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-8 px-4 md:px-6 xl:px-10 py-8">
       <h1 className="font-heading text-3xl font-bold text-primary">{t.settings.title}</h1>
 
-      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
       <section aria-labelledby="links-heading" className="space-y-4">
         <div>
           <h2 id="links-heading" className="font-heading text-xl font-bold text-primary">
@@ -69,7 +68,7 @@ async function SettingsContent() {
         )}
       </section>
 
-      <Separator className="lg:hidden" />
+      <Separator />
 
       <section aria-labelledby="account-heading" className="space-y-3">
         <h2 id="account-heading" className="font-heading text-xl font-bold text-primary">
@@ -86,7 +85,6 @@ async function SettingsContent() {
           </Button>
         </ActionForm>
       </section>
-      </div>
     </main>
   );
 }

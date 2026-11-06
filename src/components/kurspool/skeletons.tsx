@@ -151,7 +151,7 @@ export function CalendarSkeleton() {
 /** Sits inside the maintainer page's own main element. */
 export function MaintainerSkeleton() {
   return (
-    <Loading className="space-y-4 lg:col-span-2">
+    <Loading className="space-y-4">
       <Bone className="h-9 w-48" />
       <FormCards />
     </Loading>
