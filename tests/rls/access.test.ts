@@ -271,6 +271,40 @@ describe("access rules", () => {
     });
   });
 
+  describe("notes and ideas", () => {
+    it("keeps notes private and lets them point only at the person's own batch", async () => {
+      const own = await alice.client.from("notes").insert({ user_id: alice.id, item_id: itemA.id, body: "mine" }).select("id").single();
+      expect(own.error).toBeNull();
+      expect((await bob.client.from("notes").select()).data).toEqual([]);
+      const edit = await bob.client.from("notes").update({ body: "x" }).eq("id", own.data!.id).select();
+      expect(edit.data).toEqual([]);
+      const forge = await bob.client.from("notes").insert({ user_id: alice.id, body: "forged" });
+      expect(forge.error).not.toBeNull();
+      const elsewhere = await alice.client.from("notes").insert({ user_id: alice.id, item_id: itemB.id, body: "other batch" });
+      expect(elsewhere.error).not.toBeNull();
+      const second = await alice.client.from("notes").insert({ user_id: alice.id, item_id: itemA.id, body: "again" });
+      expect(second.error).not.toBeNull();
+    });
+
+    it("shares ideas within a batch only, and lets authors and maintainers remove them", async () => {
+      const posted = await alice.client.from("ideas").insert({ user_id: alice.id, batch_id: batchA.id, body: "idea" }).select("id").single();
+      expect(posted.error).toBeNull();
+      const wrongBatch = await alice.client.from("ideas").insert({ user_id: alice.id, batch_id: batchB.id, body: "x" });
+      expect(wrongBatch.error).not.toBeNull();
+      const asSomeoneElse = await alice.client.from("ideas").insert({ user_id: mia.id, batch_id: batchA.id, body: "x" });
+      expect(asSomeoneElse.error).not.toBeNull();
+
+      const seenByMia = (await mia.client.from("ideas").select("id")).data?.map((row) => row.id);
+      expect(seenByMia).toContain(posted.data!.id);
+      const seenByCarl = (await carl.client.from("ideas").select("id")).data?.map((row) => row.id) ?? [];
+      expect(seenByCarl).not.toContain(posted.data!.id);
+
+      expect((await carl.client.from("ideas").delete().eq("id", posted.data!.id).select()).data).toEqual([]);
+      const byMaintainer = await mia.client.from("ideas").delete().eq("id", posted.data!.id).select();
+      expect(byMaintainer.data?.length).toBe(1);
+    });
+  });
+
   describe("calendars", () => {
     let calendarA: { id: string };
     let calendarB: { id: string };

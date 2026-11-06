@@ -1,9 +1,10 @@
 "use client";
 
-import { BookOpen, Clapperboard, Ellipsis, GraduationCap, Info, MessageSquareText, type LucideIcon } from "lucide-react";
+import { BookOpen, Clapperboard, Ellipsis, GraduationCap, Info, MessageSquareText, StickyNote, type LucideIcon } from "lucide-react";
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { markItemSeen, setItemStatus } from "@/app/(dashboard)/actions";
+import { ItemNote } from "@/components/kurspool/item-note";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -61,7 +62,7 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
   ).filter((action) => action.status !== shown);
 
   return (
-    <div className="flex items-start gap-3 border-b border-border py-3 last:border-b-0">
+    <div id={`item-${item.id}`} className="flex scroll-mt-20 items-start gap-3 border-b border-border py-3 last:border-b-0 target:rounded-md target:bg-primary/5">
       <Checkbox
         checked={shown === "done"}
         onCheckedChange={(checked) => change(checked ? "done" : "todo")}
@@ -77,6 +78,13 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
               <Icon aria-hidden className="size-3.5 shrink-0" />
+              {item.note && (
+                <span className="inline-flex items-center gap-1 text-primary">
+                  <StickyNote aria-hidden className="size-3.5" />
+                  {t.notes.hasNote}
+                  <span aria-hidden>·</span>
+                </span>
+              )}
               {[moduleTitle, t.category[item.category], item.due_at && `${t.item.due} ${formatDate(locale, item.due_at)}`]
                 .filter(Boolean)
                 .join(", ")}
@@ -114,6 +122,7 @@ export function ItemRow({ item, locale, moduleTitle }: { item: ItemView; locale:
               ))}
             </ul>
           )}
+          <ItemNote itemId={item.id} note={item.note} locale={locale} />
           <div className="flex flex-wrap items-center gap-2">
             {actions.map((action) => (
               <Button key={action.status} type="button" variant="outline" size="lg" onClick={() => change(action.status)}>

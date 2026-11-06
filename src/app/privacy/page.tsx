@@ -56,6 +56,8 @@ function PrivacyContent() {
           <li>Kursinhalte: Titel, Beschreibungen und Links aus Google Classroom, keine Dateien und keine Noten</li>
           <li>Kurstermine: Titel, Zeiten, Orte, Beschreibungen und Meeting-Links aus den Kurskalendern</li>
           <li>Deine Auswahl im Kalender, zum Beispiel deine Kohorte</li>
+          <li>Deine Notizen, die nur du siehst</li>
+          <li>Ideen, die du teilst: Alle in deinem Batch sehen den Text, aber nicht, von wem er ist</li>
         </ul>
       </section>
       <section className="space-y-2">
@@ -84,7 +86,7 @@ function PrivacyContent() {
       <section className="space-y-2">
         <h2 className="font-medium">Auskunft und Löschung</h2>
         <p>
-          Dein Konto mit Fortschritt, Aufgaben und Links kannst du unter Einstellungen selbst löschen.{" "}
+          Dein Konto mit Fortschritt, Aufgaben, Links, Notizen und Ideen kannst du unter Einstellungen selbst löschen.{" "}
           <Suspense fallback={NO_ADDRESS}>
             <ContactDetails />
           </Suspense>

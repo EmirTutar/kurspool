@@ -7,6 +7,7 @@ import {
   FileText,
   GraduationCap,
   Languages,
+  Lightbulb,
   Layout,
   LayoutDashboard,
   Link as LinkIcon,
@@ -16,6 +17,7 @@ import {
   Moon,
   Search,
   Settings,
+  StickyNote,
   Sun,
   UserCog,
   Video,
@@ -94,6 +96,7 @@ export function AppSidebar({
   const pages = [
     { href: "/dashboard", label: t.overview, icon: LayoutDashboard, active: pathname === "/dashboard" || pathname.startsWith("/modules") },
     { href: "/calendar", label: t.calendar, icon: CalendarDays, active: pathname === "/calendar" },
+    { href: "/notes", label: t.notes, icon: StickyNote, active: pathname === "/notes" },
     { href: "/settings", label: t.settings, icon: Settings, active: pathname === "/settings" },
     ...(isMaintainer ? [{ href: "/maintainer", label: t.maintainer, icon: UserCog, active: pathname === "/maintainer" }] : []),
   ];
@@ -179,6 +182,12 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton isActive={pathname === "/ideas"} tooltip={t.ideas} render={<Link href="/ideas" onClick={closeOnPhone} />}>
+              <Lightbulb aria-hidden />
+              <span>{t.ideas}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <form action={setLocale}>
               <input type="hidden" name="locale" value={locale === "de" ? "en" : "de"} />
