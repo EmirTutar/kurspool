@@ -238,7 +238,7 @@ export function NoteCard({ note, locale }: { note: NoteView; locale: Locale }) {
 export function NoteGrid({ notes, empty, locale }: { notes: NoteView[]; empty: string; locale: Locale }) {
   if (!notes.length) return <p className="py-6 text-muted-foreground">{empty}</p>;
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {notes.map((note) => (
         <NoteCard key={note.id} note={note} locale={locale} />
       ))}

@@ -22,7 +22,7 @@ async function NotesContent() {
   const notes = (data ?? []) as unknown as NoteView[];
 
   return (
-    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-6 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-6 px-4 md:px-6 xl:px-10 py-8">
       <div className="space-y-1">
         <h1 className="font-heading text-3xl font-bold text-primary">{t.title}</h1>
         <p className="text-muted-foreground">{t.intro}</p>

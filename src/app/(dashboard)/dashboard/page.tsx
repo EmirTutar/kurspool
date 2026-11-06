@@ -47,7 +47,7 @@ async function DashboardContent() {
   const stale = isStale(batch?.last_synced_at ?? null, now);
 
   return (
-      <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-10 px-4 py-8">
+      <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-10 px-4 md:px-6 xl:px-10 py-8">
         <h1 className="sr-only">{t.nav.overview}</h1>
         {stale && batch?.last_synced_at && (
           <Alert variant="destructive">
@@ -57,6 +57,7 @@ async function DashboardContent() {
           </Alert>
         )}
 
+        <div className="grid gap-10 xl:grid-cols-2 xl:[&>*:only-child]:col-span-2">
         <section aria-labelledby="tasks-heading">
           <h2 id="tasks-heading" className="font-heading text-lg font-bold text-primary">
             {t.tasks.title}
@@ -87,6 +88,7 @@ async function DashboardContent() {
         </section>
 
         <UpcomingEvents membership={membership} locale={locale} now={now} />
+        </div>
 
         <div>
           <DashboardViews
@@ -107,7 +109,7 @@ async function DashboardContent() {
               />
             }
             list={
-              <div className="space-y-10">
+              <div className="grid gap-10 xl:grid-cols-2">
                 <section aria-labelledby="new-heading">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <h2 id="new-heading" className="font-heading text-2xl font-bold text-primary">

@@ -23,7 +23,7 @@ async function SearchContent({ searchParams }: { searchParams: PageProps<"/searc
   const titleOf = new Map(modules.map((module) => [module.id, module.title]));
 
   return (
-    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-3xl space-y-4 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-4 px-4 md:px-6 xl:px-10 py-8">
       <h1 className="font-heading text-3xl font-bold text-primary">{t.search.title}</h1>
       {query.length < 2 ? (
         <p className="text-muted-foreground">{t.search.hint}</p>

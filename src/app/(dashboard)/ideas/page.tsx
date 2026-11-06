@@ -31,12 +31,14 @@ async function IdeasContent() {
   const canRemoveAny = membership.role === "maintainer";
 
   return (
-    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-6 px-4 md:px-6 xl:px-10 py-8">
       <div className="space-y-1">
         <h1 className="font-heading text-3xl font-bold text-primary">{t.title}</h1>
         <p className="text-muted-foreground">{t.intro}</p>
       </div>
-      <IdeaForm locale={locale} />
+      <div className="max-w-3xl">
+        <IdeaForm locale={locale} />
+      </div>
 
       <section aria-labelledby="ideas-heading" className="space-y-3">
         <h2 id="ideas-heading" className="sr-only">
@@ -45,7 +47,7 @@ async function IdeasContent() {
         {ideas.length === 0 ? (
           <p className="text-muted-foreground">{t.empty}</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
             {ideas.map((idea) => {
               const mine = idea.user_id === membership.user.id;
               return (

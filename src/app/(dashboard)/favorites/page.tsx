@@ -29,17 +29,18 @@ async function FavoritesContent() {
   const starredItems = items.filter((item) => item.favorite);
 
   return (
-    <main className="animate-in fade-in duration-300 motion-reduce:animate-none mx-auto w-full max-w-5xl space-y-8 px-4 py-8">
+    <main className="animate-in fade-in duration-300 motion-reduce:animate-none w-full space-y-8 px-4 md:px-6 xl:px-10 py-8">
       <div className="space-y-1">
         <h1 className="font-heading text-3xl font-bold text-primary">{t.title}</h1>
         <p className="text-muted-foreground">{t.intro}</p>
       </div>
+      <div className="grid items-start gap-8 xl:grid-cols-2">
       <section aria-labelledby="favorite-items" className="space-y-2">
         <h2 id="favorite-items" className="font-heading text-xl font-bold text-primary">
           {t.items}
         </h2>
         {starredItems.length ? (
-          <div className="max-w-3xl">
+          <div>
             {starredItems.map((item) => (
               <ItemRow key={item.id} item={item} locale={locale} moduleTitle={titleOf.get(item.module_id)} />
             ))}
@@ -54,6 +55,7 @@ async function FavoritesContent() {
         </h2>
         <NoteGrid notes={(notes.data ?? []) as unknown as NoteView[]} empty={t.emptyNotes} locale={locale} />
       </section>
+      </div>
     </main>
   );
 }
